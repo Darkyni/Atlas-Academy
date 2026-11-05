@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { lawCourse, lawLessons } from "@/lib/curriculum";
+import ResourceLibrary from "@/components/ResourceLibrary";
+import LearningLab from "@/components/LearningLab";
 
 const subjects = [
   { id: "politica", title: "Política e geopolítica", desc: "Poder, instituições e relações internacionais.", icon: Globe2, tag: "Sociedade" },
@@ -25,7 +27,7 @@ const schedule = [
   { day: "QUI", subject: "História, cultura e filosofia", lesson: "O nascimento do pensamento filosófico", time: "40 min" }
 ];
 
-type NavKey = "Visão geral" | "Academia" | "Biblioteca" | "Tutor IA";
+type NavKey = "Visão geral" | "Academia" | "Biblioteca" | "Laboratório" | "Tutor IA";
 
 export default function AtlasDashboard() {
   const [active, setActive] = useState<NavKey>("Visão geral");
@@ -113,7 +115,8 @@ export default function AtlasDashboard() {
     { label: "Visão geral", icon: Compass },
     { label: "Academia", icon: GraduationCap },
     { label: "Biblioteca", icon: Library },
-    { label: "Tutor IA", icon: Brain }
+    { label: "Laboratório", icon: Brain },
+    { label: "Tutor IA", icon: MessageSquareText }
   ];
 
   return (
@@ -213,7 +216,9 @@ export default function AtlasDashboard() {
             </>}
           </section>}
 
-          {active === "Biblioteca" && <section className="page-section"><div className="eyebrow">RECURSOS E REFERÊNCIAS</div><h1>Biblioteca</h1><p className="page-intro">Referências bibliográficas utilizadas no primeiro curso. A biblioteca será ampliada conforme os cursos forem publicados.</p><div className="library-feature"><Library size={28}/><div><h2>Acervo de Fundamentos do Direito</h2><p>Livros de introdução, legislação oficial e obras de referência para aprofundar os temas das aulas. As referências não substituem a leitura integral das fontes.</p></div></div><div className="resource-list">{lawLessons.flatMap(lesson=>lesson.references.map(ref=>({ref,lesson:lesson.title}))).filter((item,index,array)=>array.findIndex(x=>x.ref===item.ref)===index).map(item=><article className="resource-item" key={item.ref}><div className="resource-icon"><BookOpen size={18}/></div><div><strong>{item.ref}</strong><small>Referência do curso · {item.lesson}</small></div><span>Bibliografia</span></article>)}</div><div className="source-note">Legislação brasileira: consulte sempre a versão atualizada nos portais oficiais do Planalto e dos tribunais. As aulas têm finalidade educacional e não constituem aconselhamento jurídico.</div></section>}
+          {active === "Biblioteca" && <ResourceLibrary/>}
+
+          {active === "Laboratório" && <LearningLab/>}
 
           {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O tutor deve explicar fundamentos, comparar perspectivas, propor exemplos e ajudar você a testar o próprio entendimento.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">ATLAS AI</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Confira informações importantes em fontes confiáveis.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
           <footer className="footer"><span>ATLAS ACADEMY</span><span>CONHECIMENTO EM CONSTRUÇÃO · 2026</span></footer>
