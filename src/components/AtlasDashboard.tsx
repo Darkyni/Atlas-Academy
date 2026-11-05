@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Activity, ArrowRight, Atom, BookOpen, Brain, Check, ChevronDown, Clock3,
   Compass, GraduationCap, Library, Menu, MessageSquareText, Search, Shield,
   Sparkles, X, Scale, Globe2, Code2, Landmark, Gamepad2
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { lawCourse, lawLessons } from "@/lib/curriculum";
 
 const subjects = [
   { id: "politica", title: "Política e geopolítica", desc: "Poder, instituições e relações internacionais.", icon: Globe2, tag: "Sociedade" },
@@ -39,6 +40,34 @@ export default function AtlasDashboard() {
   const [authPassword, setAuthPassword] = useState("");
   const [authMessage, setAuthMessage] = useState("");
   const [showAuth, setShowAuth] = useState(false);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [quizChoice, setQuizChoice] = useState<number | null>(null);
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const selectedLesson = lawLessons.find(lesson => lesson.id === selectedLessonId) ?? null;
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("atlas-law-completed-lessons");
+      if (saved) setCompletedLessons(JSON.parse(saved));
+    } catch { /* armazenamento local indisponível */ }
+  }, []);
+
+  useEffect(() => {
+    try { window.localStorage.setItem("atlas-law-completed-lessons", JSON.stringify(completedLessons)); }
+    catch { /* armazenamento local indisponível */ }
+  }, [completedLessons]);
+
+  function openLesson(id: string) {
+    setSelectedLessonId(id);
+    setQuizChoice(null);
+    setQuizSubmitted(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function finishLesson() {
+    if (selectedLessonId) setCompletedLessons(old => old.includes(selectedLessonId) ? old : [...old, selectedLessonId]);
+  }
 
   const filtered = useMemo(
     () => subjects.filter(s => `${s.title} ${s.desc}`.toLowerCase().includes(query.toLowerCase())),
@@ -157,9 +186,34 @@ export default function AtlasDashboard() {
             </section>
           </>}
 
-          {active === "Academia" && <section className="page-section"><div className="eyebrow">CURRÍCULO</div><h1>Academia</h1><p className="page-intro">Explore os campos de conhecimento e construa uma formação interdisciplinar.</p><div className="search-box"><Search size={18}/><input placeholder="Buscar disciplina..." value={query} onChange={e=>setQuery(e.target.value)}/></div><div className="subject-grid academy-grid">{filtered.map(s=>{const Icon=s.icon;return <article className="subject-card academy-subject" key={s.id}><div className={`subject-icon ${s.id}`}><Icon size={20}/></div><span className="subject-tag">{s.tag}</span><h3>{s.title}</h3><p>{s.desc}</p><div className="course-footer"><span>Trilha introdutória · em construção</span><button onClick={()=>setActive("Tutor IA")} aria-label={`Estudar ${s.title}`}><ArrowRight size={17}/></button></div></article>;})}</div></section>}
+          {active === "Academia" && <section className="page-section">
+            {selectedLesson ? <>
+              <button className="text-button lesson-back" onClick={() => setSelectedLessonId(null)}><ArrowRight size={14} className="back-arrow"/> Voltar ao curso</button>
+              <div className="eyebrow">FUNDAMENTOS DO DIREITO · AULA {String(lawLessons.findIndex(l=>l.id===selectedLesson.id)+1).padStart(2,"0")}</div>
+              <h1>{selectedLesson.title}</h1>
+              <p className="page-intro">{selectedLesson.objective}</p>
+              <div className="lesson-meta"><span><Clock3 size={14}/>{selectedLesson.duration} minutos</span><span><BookOpen size={14}/> Nível iniciante</span><span><GraduationCap size={14}/> Curso introdutório</span></div>
+              <article className="lesson-paper">
+                <div className="lesson-callout"><strong>Antes de começar</strong><p>{selectedLesson.objective}</p></div>
+                {selectedLesson.sections.map((section,index)=><section className="lesson-content-section" key={section.heading}><h2>{section.heading}</h2>{section.paragraphs.map((paragraph,i)=><p key={i}>{paragraph}</p>)}{section.points && <ul>{section.points.map(point=><li key={point}>{point}</li>)}</ul>}</section>)}
+                <section className="lesson-content-section"><h2>Estudo de caso</h2><p>{selectedLesson.caseStudy}</p></section>
+                <section className="lesson-content-section"><h2>Conceitos essenciais</h2><div className="term-grid">{selectedLesson.keyTerms.map(term=><div className="term-card" key={term.term}><strong>{term.term}</strong><p>{term.definition}</p></div>)}</div></section>
+                <section className="quiz-panel"><div className="eyebrow">VERIFICAÇÃO DE APRENDIZAGEM</div><h2>{selectedLesson.question.prompt}</h2><div className="quiz-options">{selectedLesson.question.options.map((option,index)=><button key={option} className={`quiz-option ${quizSubmitted && index===selectedLesson.question.correct ? "correct" : ""} ${quizSubmitted && quizChoice===index && index!==selectedLesson.question.correct ? "incorrect" : ""} ${quizChoice===index ? "chosen" : ""}`} onClick={()=>{setQuizChoice(index);setQuizSubmitted(false);}}><span>{String.fromCharCode(65+index)}</span>{option}</button>)}</div><button className="button button-dark" disabled={quizChoice===null} onClick={()=>setQuizSubmitted(true)}>Conferir resposta</button>{quizSubmitted && <div className={`quiz-feedback ${quizChoice===selectedLesson.question.correct ? "right" : "wrong"}`}><strong>{quizChoice===selectedLesson.question.correct ? "Resposta correta." : "Vamos revisar esse ponto."}</strong><p>{selectedLesson.question.explanation}</p></div>}</section>
+                <section className="lesson-content-section reflection-box"><h2>Para refletir</h2><p>{selectedLesson.reflection}</p></section>
+                <section className="lesson-content-section"><h2>Referências para aprofundamento</h2><ul>{selectedLesson.references.map(ref=><li key={ref}>{ref}</li>)}</ul></section>
+                <div className="lesson-completion"><div><strong>{completedLessons.includes(selectedLesson.id) ? "Aula marcada como concluída" : "Terminou esta aula?"}</strong><p>Conclua depois de estudar o conteúdo e responder à questão de verificação.</p></div><button className="button button-dark" onClick={finishLesson} disabled={completedLessons.includes(selectedLesson.id) || !quizSubmitted || quizChoice!==selectedLesson.question.correct}>{completedLessons.includes(selectedLesson.id) ? <><Check size={15}/> Concluída</> : <>Marcar como concluída <ArrowRight size={15}/></>}</button></div>
+              </article>
+            </> : <>
+              <div className="eyebrow">CURRÍCULO E FORMAÇÃO</div><h1>Academia</h1><p className="page-intro">Cursos organizados em módulos e aulas. Comece pelos fundamentos e avance com estudo, prática e revisão.</p>
+              <div className="search-box"><Search size={18}/><input placeholder="Buscar disciplina..." value={query} onChange={e=>setQuery(e.target.value)}/></div>
+              <div className="course-feature"><div><div className="eyebrow light">CURSO DISPONÍVEL · DEPARTAMENTO DE DIREITO</div><h2>{lawCourse.title}</h2><p>{lawCourse.subtitle}</p><div className="course-feature-meta"><span><BookOpen size={14}/>{lawCourse.workload}</span><span><GraduationCap size={14}/>{lawCourse.level}</span></div></div><div className="course-feature-mark">A.</div></div>
+              <div className="course-progress"><div><strong>Seu percurso</strong><span>{completedLessons.length} de {lawLessons.length} aulas concluídas</span></div><div className="progress-track"><span style={{width:`${completedLessons.length/lawLessons.length*100}%`}}/></div></div>
+              <div className="course-layout"><div className="course-main"><div className="section-heading"><div><div className="eyebrow">TRILHA INTRODUTÓRIA</div><h2>Programa do curso</h2></div><span className="small-count">{lawLessons.length} AULAS</span></div><div className="lesson-list">{lawLessons.map((lesson,index)=><button className="lesson-list-item" key={lesson.id} onClick={()=>openLesson(lesson.id)}><span className={`lesson-number ${completedLessons.includes(lesson.id)?"done":""}`}>{completedLessons.includes(lesson.id)?<Check size={14}/>:String(index+1).padStart(2,"0")}</span><span className="lesson-list-copy"><strong>{lesson.title}</strong><small>{lesson.objective}</small></span><span className="lesson-duration">{lesson.duration} min</span><ArrowRight size={16}/></button>)}</div></div><aside className="course-aside"><div className="eyebrow">SOBRE O CURSO</div><h3>{lawCourse.title}</h3><p>{lawCourse.description}</p><div className="course-aside-stat"><strong>10</strong><span>aulas estruturadas</span></div><div className="course-aside-stat"><strong>1</strong><span>avaliação por aula</span></div><div className="course-aside-stat"><strong>6h</strong><span>de estudo estimado</span></div><button className="button button-dark" onClick={()=>openLesson(lawLessons[0].id)}>Começar primeira aula <ArrowRight size={15}/></button></aside></div>
+              <div className="section-block"><div className="section-heading"><div><div className="eyebrow">OUTROS DEPARTAMENTOS</div><h2>Próximas áreas curriculares</h2></div></div><div className="subject-grid academy-grid">{filtered.filter(s=>s.id!=="direito").map(s=>{const Icon=s.icon;return <article className="subject-card academy-subject" key={s.id}><div className={`subject-icon ${s.id}`}><Icon size={20}/></div><span className="subject-tag">{s.tag}</span><h3>{s.title}</h3><p>{s.desc}</p><div className="course-footer"><span>Próxima etapa de desenvolvimento</span><span>Em planejamento</span></div></article>;})}</div></div>
+            </>}
+          </section>}
 
-          {active === "Biblioteca" && <section className="page-section"><div className="eyebrow">RECURSOS E REFERÊNCIAS</div><h1>Biblioteca</h1><p className="page-intro">Um acervo organizado para apoiar suas aulas, pesquisas e projetos.</p><div className="library-feature"><Library size={28}/><div><h2>Seu acervo começa aqui.</h2><p>A estrutura está preparada para receber livros, artigos, vídeos, documentos e fichamentos. O catálogo editorial será construído junto com o currículo.</p></div></div><div className="empty-state"><BookOpen size={24}/><strong>Nenhum recurso cadastrado ainda</strong><span>Os materiais serão organizados por disciplina, tema e nível de aprofundamento.</span></div></section>}
+          {active === "Biblioteca" && <section className="page-section"><div className="eyebrow">RECURSOS E REFERÊNCIAS</div><h1>Biblioteca</h1><p className="page-intro">Referências bibliográficas utilizadas no primeiro curso. A biblioteca será ampliada conforme os cursos forem publicados.</p><div className="library-feature"><Library size={28}/><div><h2>Acervo de Fundamentos do Direito</h2><p>Livros de introdução, legislação oficial e obras de referência para aprofundar os temas das aulas. As referências não substituem a leitura integral das fontes.</p></div></div><div className="resource-list">{lawLessons.flatMap(lesson=>lesson.references.map(ref=>({ref,lesson:lesson.title}))).filter((item,index,array)=>array.findIndex(x=>x.ref===item.ref)===index).map(item=><article className="resource-item" key={item.ref}><div className="resource-icon"><BookOpen size={18}/></div><div><strong>{item.ref}</strong><small>Referência do curso · {item.lesson}</small></div><span>Bibliografia</span></article>)}</div><div className="source-note">Legislação brasileira: consulte sempre a versão atualizada nos portais oficiais do Planalto e dos tribunais. As aulas têm finalidade educacional e não constituem aconselhamento jurídico.</div></section>}
 
           {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O tutor deve explicar fundamentos, comparar perspectivas, propor exemplos e ajudar você a testar o próprio entendimento.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">ATLAS AI</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Confira informações importantes em fontes confiáveis.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
           <footer className="footer"><span>ATLAS ACADEMY</span><span>CONHECIMENTO EM CONSTRUÇÃO · 2026</span></footer>
