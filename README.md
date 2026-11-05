@@ -1,11 +1,11 @@
-# ATLAS Academy — versão acadêmica inicial
+# ATLAS Academy — Academic v2
 
-Academia digital pessoal para aprendizagem interdisciplinar. Esta versão acrescenta o primeiro curso didático navegável ao projeto.
+Academia digital pessoal para aprendizagem interdisciplinar. Esta versão amplia o primeiro curso com uma biblioteca multimídia curada, envio de PDFs privados e um laboratório de aprendizagem ativa.
 
 ## Requisitos
 - Node.js 20.9 ou superior
 - npm
-- Projeto Supabase próprio para login
+- Projeto Supabase próprio para login e envio de arquivos
 - Chave de API OpenAI para habilitar o tutor
 
 ## Executar localmente
@@ -17,44 +17,51 @@ Academia digital pessoal para aprendizagem interdisciplinar. Esta versão acresc
 6. Execute `npm run dev`.
 7. Acesse `http://localhost:3000`.
 
-A interface abre em modo demonstrativo sem Supabase. O tutor só responde quando a chave de API estiver configurada.
+A interface abre em modo demonstrativo sem Supabase. O envio de PDFs privados requer usuário autenticado, bucket e migração acadêmica configurados. O tutor só responde quando a chave de API estiver configurada.
 
 ## Supabase
-1. Use um projeto Supabase próprio para o ATLAS.
-2. Abra o SQL Editor e execute `supabase/schema.sql`.
-3. Configure `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-4. Nunca exponha a chave `service_role` no navegador nem em variáveis `NEXT_PUBLIC_`.
+1. Use o projeto Supabase criado para o ATLAS.
+2. Abra o SQL Editor e execute `supabase/schema.sql` se ainda não tiver executado o schema inicial.
+3. Depois execute uma única vez `supabase/migrations/002_learning_library.sql`.
+4. Configure `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` na Vercel.
+5. Nunca exponha a chave `service_role` no navegador nem em variáveis `NEXT_PUBLIC_`.
+
+A migração cria tabelas para materiais, anotações, tentativas de atividades e favoritos, além do bucket privado `atlas-library`. O envio de PDFs usa caminhos iniciados pelo ID do usuário e políticas RLS; arquivos pessoais não ficam públicos. Limite de upload: 50 MB por PDF.
 
 ## Inteligência artificial
 A rota `src/app/api/tutor/route.ts` chama a API Responses no servidor. Configure `OPENAI_API_KEY` e, opcionalmente, `OPENAI_MODEL`. A chave não é enviada ao navegador.
 
 ## Publicação na Vercel
-1. Envie o conteúdo extraído desta pasta para o repositório GitHub.
-2. Na Vercel, importe o repositório.
-3. Cadastre as variáveis do `.env.local` em **Settings → Environment Variables**.
-4. Faça um novo deploy.
+1. Envie o conteúdo extraído desta pasta para o repositório GitHub, substituindo os arquivos correspondentes e mantendo a estrutura.
+2. A Vercel deverá iniciar um novo deploy após o commit.
+3. Confira as variáveis em **Settings → Environment Variables**.
+4. Se executar a migração SQL depois do deploy, o envio de PDF passa a estar disponível sem precisar publicar novamente, desde que as variáveis do Supabase já estejam corretas.
 
 ## O que esta versão entrega
 - Dashboard responsivo e navegação principal.
-- Primeiro curso navegável: **Fundamentos do Direito**.
-- Dez aulas introdutórias com objetivos, explicações, exemplos, estudos de caso, conceitos essenciais, questões de múltipla escolha, reflexão e referências bibliográficas.
-- Verificação de resposta com explicação.
-- Biblioteca com referências utilizadas no curso.
-- Marcação de conclusão de aula após resposta correta.
-- Progresso das aulas do curso salvo no armazenamento local do navegador.
-- Login Supabase e rota server-side preparada para tutor IA.
+- Primeiro curso navegável: **Fundamentos do Direito**, com dez aulas estruturadas.
+- Questões com feedback explicativo e marcação de conclusão.
+- Biblioteca pesquisável com legislação oficial, artigos acadêmicos, páginas de repositórios, livros indicados e portais de vídeo.
+- Envio de PDFs pessoais para bucket privado do Supabase, após executar a migração e entrar na conta.
+- Laboratório de aprendizagem com oito flashcards e estudo de caso interativo.
+- Progresso dos flashcards e conclusão de aulas armazenados localmente no navegador.
+- Migração de banco para materiais, anotações, tentativas e favoritos.
 
-## Limites desta versão
-- O conteúdo do curso está armazenado no projeto (arquivo `src/lib/curriculum.ts`), não é carregado dinamicamente do Supabase.
-- O progresso das aulas de Fundamentos do Direito é salvo localmente no navegador. **Ainda não sincroniza entre dispositivos nem com `lesson_progress` no Supabase.**
-- O progresso semanal da Visão geral continua demonstrativo.
+## Limites conhecidos
+- A curadoria editorial inicial está concentrada em Fundamentos do Direito; os outros departamentos ainda precisam de cursos e acervos próprios.
+- Os materiais externos são links para as fontes originais. Livros comerciais são indicados por catálogo editorial, não redistribuídos em PDF.
+- Os flashcards e progresso das aulas desta versão ficam no navegador; a migração prepara a persistência futura no Supabase, mas ainda não sincroniza essas atividades automaticamente.
+- O envio de PDFs pessoais grava o arquivo e seus metadados no Supabase; o catálogo curado continua versionado no código nesta etapa.
 - O login contempla entrada de usuários já cadastrados; cadastro, recuperação de senha e gestão completa de conta ainda precisam ser implementados.
 - O tutor depende de `OPENAI_API_KEY`; o histórico ainda não é persistido e não há busca externa automática.
-- Os outros cinco departamentos estão identificados, mas seus cursos ainda serão desenvolvidos.
 - O conteúdo é educacional e introdutório, não substitui aconselhamento jurídico nem a consulta às versões atualizadas das fontes oficiais.
 
 ## Organização principal
-- `src/lib/curriculum.ts`: conteúdo estruturado das aulas do primeiro curso.
-- `src/components/AtlasDashboard.tsx`: navegação, curso, aula, questionário e progresso local.
+- `src/lib/curriculum.ts`: conteúdo estruturado das aulas.
+- `src/lib/resources.ts`: curadoria de materiais e conjunto de flashcards.
+- `src/components/AtlasDashboard.tsx`: navegação e painel principal.
+- `src/components/ResourceLibrary.tsx`: busca, filtros e envio de PDFs pessoais.
+- `src/components/LearningLab.tsx`: flashcards e estudo de caso.
 - `src/app/globals.css`: identidade visual e estilos responsivos.
-- `supabase/schema.sql`: estrutura inicial do banco e políticas de segurança.
+- `supabase/schema.sql`: estrutura inicial do banco.
+- `supabase/migrations/002_learning_library.sql`: recursos da biblioteca e bucket privado.
