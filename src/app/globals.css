@@ -75,3 +75,93 @@
 @media(prefers-reduced-motion:reduce){.content-stage{animation:none}}
 
 .course-aside ul{padding-left:18px;color:#687078;font-size:10px;line-height:1.75;margin:8px 0 16px}.course-aside li{margin:0 0 7px}
+
+/* ATLAS Academy v6 — biblioteca multidisciplinar e ferramentas de estudo */
+.library-department-select,.lab-department-picker select,.scenario-switch select{width:100%;max-width:420px;background:#fffefa;border:1px solid #ded9cf;color:#48545d;padding:11px 13px;font:inherit;font-size:11px}
+.library-department-select{max-width:100%}.department-filter-label{margin-top:16px}
+.lab-department-picker{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#ece9e1;border:1px solid #e1dbcf;padding:14px 17px;margin:20px 0}
+.lab-department-picker label{font-size:10px;font-weight:700;color:#59645f;letter-spacing:.5px;text-transform:uppercase}
+.lab-department-picker select{flex:1;min-width:240px}
+.review-mode-switch{display:flex;gap:6px;margin:0 0 12px;flex-wrap:wrap}
+.review-mode-switch button{border:1px solid #e2ded5;background:#f8f7f2;color:#737982;padding:8px 11px;font-size:9px;cursor:pointer}
+.review-mode-switch button.active{background:#344b59;color:#fff;border-color:#344b59}
+.flashcard-progress{height:3px;background:#ebe8df;margin-bottom:12px}.flashcard-progress span{display:block;height:100%;background:#a58a5d;transition:width .25s ease}
+.flashcard-meta{display:flex;justify-content:space-between;gap:8px;margin-top:9px;font-size:8px;color:#8b7652;text-transform:uppercase;letter-spacing:.6px}
+.review-grades{margin-top:14px}.review-grades p{font-size:10px;color:#737982;margin:0 0 8px}
+.review-grades>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.review-grades button{border:1px solid #e4e0d7;background:#faf9f5;color:#59616a;padding:10px 6px;font-size:9px;cursor:pointer;transition:transform .18s,border-color .18s}
+.review-grades button:hover{transform:translateY(-2px);border-color:#a58a5d}
+.review-grades .grade-again{background:#f7eeeb;color:#8c5b50;border-color:#ead7d1}
+.review-grades .grade-hard{background:#f6f1e7;color:#8b7652;border-color:#e8ddc7}
+.review-grades .grade-good{background:#edf2ed;color:#526c58;border-color:#d5e0d5}
+.review-grades .grade-easy{background:#eaf0f2;color:#526b78;border-color:#d5e0e4}
+.review-empty{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;background:#f8f7f2;border:1px dashed #d8d2c5;padding:25px;color:#7b8b7c}
+.review-empty strong{font-family:'Playfair Display',serif;font-size:20px;font-weight:500;color:#46534d}
+.review-empty span{max-width:340px;font-size:10px;line-height:1.7;color:#7b8287}
+.review-empty .button{margin-top:6px}
+.scenario-switch{border-top:1px solid #eeeae2;margin-top:16px;padding-top:13px;display:grid;gap:7px}
+.scenario-switch span{font-size:9px;color:#92969e}.scenario-switch select{max-width:100%}
+.study-notes-panel{margin-top:15px}.study-notes-panel>p{font-size:10px;line-height:1.7;color:#737982}
+.study-notes-panel textarea{width:100%;resize:vertical;background:#faf9f5;border:1px solid #e5e0d7;padding:13px;color:#4d5961;font:inherit;font-size:11px;line-height:1.7;outline:none}
+.study-notes-panel textarea:focus,.library-department-select:focus,.lab-department-picker select:focus{border-color:#a58a5d;box-shadow:0 0 0 2px #a58a5d22}
+.study-note-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}
+.study-note-actions span{font-size:9px;color:#8a9094}.study-note-actions .button{white-space:nowrap}
+@media(max-width:600px){.lab-department-picker{align-items:stretch;flex-direction:column}.lab-department-picker select{min-width:0;max-width:none}.review-grades>div{grid-template-columns:repeat(2,minmax(0,1fr))}.study-note-actions{align-items:stretch;flex-direction:column}.study-note-actions .button{justify-content:center}.flashcard-meta{font-size:7px}}
+@media(prefers-reduced-motion:reduce){.flashcard-progress span,.review-grades button{transition:none}}
+
+
+.library-saved-toggle{display:inline-flex;align-items:center;gap:7px;margin-top:13px;border:1px solid #dcd7cc;background:#fffefa;color:#667078;padding:9px 12px;font-size:9px;cursor:pointer}
+.library-saved-toggle.active{background:#344b59;border-color:#344b59;color:#fff}
+.resource-card-actions{display:flex;align-items:center;gap:8px}
+.resource-save-button{width:29px;height:29px;display:grid;place-items:center;border:1px solid #e5e0d7;background:#faf9f5;color:#77817c;cursor:pointer}
+.resource-save-button.saved{background:#edf2ed;border-color:#d5e0d5;color:#58705d}
+
+.tutor-area-label{display:grid;gap:6px;padding:12px 16px 0;font-size:9px;color:#7d8588;text-transform:uppercase;letter-spacing:.6px}
+.tutor-area-label select{width:100%;background:#faf9f5;border:1px solid #e5e0d7;color:#4d5961;padding:10px;font-size:10px;text-transform:none;letter-spacing:0}
+.tutor-area-label select:focus{outline:2px solid #b89a65;outline-offset:1px}
+
+/* ATLAS v7 · aprendizagem ativa e avaliações por curso */
+.lesson-workbench,.course-assessment{margin-top:22px;padding:24px;background:#fffefa;border:1px solid var(--line);border-radius:3px}
+.lesson-workbench h2,.course-assessment h2{font-family:'Playfair Display',serif;font-size:23px;font-weight:500;margin:7px 0}
+.lesson-workbench>p,.assessment-heading p{font-size:10px;line-height:1.75;color:#747983;max-width:720px}
+.workbench-progress,.assessment-progress>div{height:4px;background:#ece8df;margin:17px 0;overflow:hidden}
+.workbench-progress span,.assessment-progress i{display:block;height:100%;background:#829486;transition:width .25s}
+.workbench-checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:15px 0 18px}
+.workbench-checklist label{display:flex;align-items:center;gap:9px;padding:11px;border:1px solid #e9e5dc;color:#667078;font-size:10px;cursor:pointer}
+.workbench-checklist input{position:absolute;opacity:0;pointer-events:none}
+.workbench-checklist label>span{width:18px;height:18px;border:1px solid #d5d0c5;display:grid;place-items:center;color:white;flex-shrink:0}
+.workbench-checklist label.is-done{background:#f0f3ef;border-color:#dce5dc;color:#4f6656}
+.workbench-checklist label.is-done>span{background:#718777;border-color:#718777}
+.workbench-prompts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.workbench-prompts>div{background:#f4f2ed;padding:14px}
+.workbench-prompts strong,.workbench-note-label{display:flex;align-items:center;gap:7px;color:#586b62;font-size:10px}
+.workbench-prompts p{font-size:10px;line-height:1.7;color:#6e747c;margin:8px 0 0}
+.workbench-note-label{margin:16px 0 8px}
+.lesson-workbench textarea{width:100%;resize:vertical;border:1px solid #e4dfd5;background:#fcfbf8;padding:13px;color:#454d55;font:inherit;font-size:11px;line-height:1.7;outline-color:#a58a5d}
+.workbench-confidence{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}
+.workbench-confidence>span{font-size:10px;color:#737982}
+.workbench-confidence>div{display:flex;gap:6px;flex-wrap:wrap}
+.workbench-confidence button{border:1px solid #e2ddd3;background:#fffefa;color:#707780;padding:8px 10px;font-size:9px}
+.workbench-confidence button.selected{background:#344b59;border-color:#344b59;color:white}
+.workbench-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:15px}
+.workbench-footer small{font-size:9px;color:#8b9097}
+.related-resources>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
+.related-resources a{display:grid;gap:5px;padding:12px;border:1px solid #e6e1d8;text-decoration:none;color:#4b5961;transition:border-color .2s,transform .2s}
+.related-resources a:hover{border-color:#b49b70;transform:translateY(-2px)}
+.related-resources a strong{font-size:10px;line-height:1.5}.related-resources a span{font-size:8px;color:#899097}
+.assessment-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}.assessment-heading>svg{color:#a68a5d;flex-shrink:0}
+.assessment-locked,.assessment-start,.assessment-result{display:flex;align-items:center;gap:12px;background:#f4f2ed;padding:15px;margin-top:14px}
+.assessment-locked>svg,.assessment-result>svg{color:#829486;flex-shrink:0}
+.assessment-locked>div,.assessment-start>div,.assessment-result>div{display:grid;gap:4px;flex:1}
+.assessment-locked strong,.assessment-start strong,.assessment-result strong{font-size:11px;color:#4e5b61}
+.assessment-locked span,.assessment-start span,.assessment-result span{font-size:9px;line-height:1.6;color:#858b91}
+.assessment-progress{margin:16px 0}.assessment-progress>span{font-size:9px;color:#858b91}.assessment-progress>div{margin:7px 0 0}
+.assessment-question{padding:17px 0;border-top:1px solid #eeeae2}.assessment-question>span{font-size:8px;letter-spacing:1px;color:#9a8057;font-weight:700}.assessment-question h3{font-size:12px;line-height:1.6;font-weight:600;color:#414950;margin:8px 0 12px}
+.assessment-question>div{display:grid;gap:7px}.assessment-question label{display:flex;align-items:flex-start;gap:9px;border:1px solid #e7e2d9;padding:10px;font-size:10px;line-height:1.5;color:#69727a;cursor:pointer}.assessment-question label.chosen{border-color:#9b8a69;background:#f8f5ed}.assessment-question label.correct{border-color:#9caf9d;background:#f0f4ef}.assessment-question label.incorrect{border-color:#c99a8d;background:#fbf1ee}.assessment-question input{margin:2px 0 0;accent-color:#586f61}
+.assessment-explanation{font-size:10px;line-height:1.7;color:#63716b;background:#f1f4f0;padding:12px;margin:9px 0 0}
+.assessment-result{flex-wrap:wrap}.assessment-result .button{margin-left:auto}
+@media(max-width:700px){.workbench-checklist,.workbench-prompts,.related-resources>div{grid-template-columns:1fr}.workbench-confidence{align-items:flex-start;flex-direction:column}.workbench-confidence>div{width:100%}.workbench-confidence button{flex:1}.workbench-footer,.assessment-start{align-items:stretch;flex-direction:column}.assessment-result .button{margin-left:0}.lesson-workbench,.course-assessment{padding:17px}}
+@media(prefers-reduced-motion:reduce){.workbench-progress span,.related-resources a{transition:none}}
+.course-module-label{display:flex;align-items:center;gap:10px;padding:17px 0 8px;border-bottom:1px solid #e9e4da;margin-bottom:2px}
+.course-module-label span{font-size:8px;letter-spacing:1px;color:#9b8052;font-weight:700}
+.course-module-label strong{font-family:'Playfair Display',serif;font-size:15px;font-weight:500;color:#4d5961}
