@@ -1,4 +1,4 @@
-# ATLAS Academy — Academic v2
+# ATLAS Academy — Academic v7
 
 Academia digital pessoal para aprendizagem interdisciplinar. Esta versão amplia o primeiro curso com uma biblioteca multimídia curada, envio de PDFs privados e um laboratório de aprendizagem ativa.
 
@@ -66,14 +66,71 @@ A rota `src/app/api/tutor/route.ts` chama a API Responses no servidor. Configure
 - `supabase/schema.sql`: estrutura inicial do banco.
 - `supabase/migrations/002_learning_library.sql`: recursos da biblioteca e bucket privado.
 
+## Expansão curricular — ATLAS Academy 0.3
 
-## Identidade visual — atualização editorial
+A Academia agora reúne seis departamentos:
 
-Esta atualização refina a interface com uma paleta de marfim, azul-petróleo, verde-sálvia e dourado fosco. O foco é oferecer contraste, hierarquia tipográfica, áreas de leitura confortáveis, feedback de interação e movimento discreto.
+- Direito e instituições — curso Fundamentos do Direito (trilha original).
+- Economia e Finanças — Fundamentos de Economia e Educação Financeira.
+- Tecnologia e Inteligência Artificial — Fundamentos da Computação, IA e Segurança Digital.
+- História e Geopolítica — História Mundial e Formação da Ordem Geopolítica.
+- Filosofia e Pensamento Crítico — Fundamentos da Filosofia, Lógica e Ética.
+- Ciências e Matemática — Matemática, Física e Método Científico.
 
-- Preserva as páginas, componentes, autenticação e integração Supabase existentes.
-- Não exige nova migração SQL nem alterações no banco.
-- Inclui estados de foco visíveis, interações hover/active e respeito a `prefers-reduced-motion`.
-- A aparência pode depender do carregamento das fontes Google Fonts; há fontes de sistema como fallback.
+Cada um dos cinco cursos adicionados nesta etapa possui quatro aulas estruturadas com explicações, conceitos essenciais, estudo de caso, questão comentada, reflexão e referências. O catálogo permite abrir cada departamento e acompanhar as aulas concluídas no estado local já utilizado pelo projeto. Esta etapa não exige nova migração do Supabase.
 
-Após substituir os arquivos no GitHub, aguarde a implantação automática na Vercel e confira o resultado em desktop e celular.
+Próximas expansões pedagógicas: ampliar cada trilha em módulos, aprofundar avaliações, associar materiais multimídia por aula e integrar tentativas/progresso de forma persistente ao Supabase.
+
+
+## ATLAS Academy v6 — expansão acadêmica e aprendizagem adaptativa
+
+### O que mudou
+- Os cinco departamentos interdisciplinares agora possuem 6 aulas cada; o curso introdutório de Direito permanece preservado.
+- A Biblioteca reúne curadoria multidisciplinar de fontes oficiais, universidades, organizações internacionais e plataformas abertas, com filtros por departamento e tipo de material.
+- É possível salvar materiais para consulta posterior no navegador.
+- O Laboratório passou a reunir cartões de todas as áreas, revisão espaçada com quatro níveis de dificuldade, estudos de caso por departamento e caderno de reflexão.
+- A agenda semanal abre a aula correspondente e o indicador semanal usa conclusões reais de aulas, em vez de marcações independentes.
+- A conclusão de aulas pode ser sincronizada entre dispositivos quando a migração 003 estiver aplicada e o estudante estiver autenticado.
+- O progresso e as anotações do Laboratório continuam com armazenamento local como alternativa quando a conta ou a conexão não estiver disponível.
+
+### Atualização do Supabase — executar uma vez
+1. Abra o painel do projeto Supabase.
+2. Entre em **SQL Editor**.
+3. Abra o arquivo `supabase/migrations/003_student_progress.sql` deste repositório.
+4. Copie todo o conteúdo e execute uma única vez.
+5. Não execute novamente `schema.sql` nem a migração `002_learning_library.sql`.
+
+A migração cria apenas a tabela `student_lesson_progress`, com Row Level Security para que cada usuário leia e altere somente suas próprias conclusões de aula. Não é necessário compartilhar chaves secretas nem alterar as variáveis de ambiente existentes.
+
+### Limites importantes
+- Favoritos, cartões de revisão e caderno de reflexão ficam no navegador atual. A sincronização em nuvem desses recursos pode ser adicionada em uma etapa posterior.
+- Os materiais externos permanecem hospedados nas instituições de origem. O ATLAS não redistribui livros protegidos por direitos autorais.
+- A biblioteca é uma curadoria inicial: confirme a disponibilidade, idioma, licença e atualização de cada material na página de origem.
+
+
+## ATLAS Academy v7 — aprofundamento curricular e prática ativa
+
+### Ampliação dos cursos
+- Direito e instituições: 10 aulas preservadas.
+- Economia e Finanças: 9 aulas, com crédito, investimentos e indicadores macroeconômicos adicionados.
+- Tecnologia e Inteligência Artificial: 9 aulas, com redes, algoritmos e cibersegurança adicionados.
+- História e Geopolítica: 9 aulas, com revoluções, guerras mundiais, Guerra Fria e interdependência adicionadas.
+- Filosofia e Pensamento Crítico: 9 aulas, com Platão e Aristóteles, epistemologia e filosofia política adicionadas.
+- Ciências e Matemática: 9 aulas, com estatística, probabilidade e física adicionadas.
+- Total: 55 aulas distribuídas em seis departamentos. Os cursos foram organizados em módulos progressivos de fundamentos, mecanismos e aplicação.
+
+### Novos mecanismos funcionais
+- Oficina de aprendizagem em cada aula: checklist de teoria, estudo de caso, recuperação ativa e reflexão; caderno individual e autoavaliação de domínio.
+- Avaliação integradora por curso, liberada após concluir pelo menos 70% das aulas, com seleção de questões, correção comentada, nota e melhor resultado salvo no navegador.
+- Laboratório ampliado com 53 cartões de estudo e 12 cenários práticos, com alternância de desafios por departamento.
+- Materiais relacionados aparecem dentro das aulas quando há recursos associados à disciplina ou ao assunto.
+- Painel geral calcula aulas concluídas e duração estimada das aulas concluídas em todos os departamentos.
+
+### Materiais e fontes
+A biblioteca foi ampliada com referências abertas e institucionais, incluindo OpenStax, Harvard CS50, ANPD, Stanford Encyclopedia of Philosophy, Internet Encyclopedia of Philosophy, PhET, IBGE, Our World in Data e ONU. Os links apontam para as fontes de origem; o ATLAS não redistribui obras protegidas. Verifique idioma, licença, edição e atualização na página original.
+
+### Dados e compatibilidade
+- Nenhuma nova migração SQL é necessária nesta versão.
+- A sincronização das conclusões de aula continua dependendo da migração `003_student_progress.sql` já incluída na versão anterior e de autenticação Supabase.
+- Notas da oficina, autoavaliações, melhor nota das avaliações, cartões e favoritos permanecem salvos no navegador atual. Ainda não são sincronizados entre dispositivos.
+- O conteúdo curricular foi tipado e verificado; a instalação das dependências excedeu o tempo disponível nesta execução, portanto o build Next.js completo ainda precisa ser confirmado pelo deploy da Vercel.
