@@ -65,3 +65,15 @@ A rota `src/app/api/tutor/route.ts` chama a API Responses no servidor. Configure
 - `src/app/globals.css`: identidade visual e estilos responsivos.
 - `supabase/schema.sql`: estrutura inicial do banco.
 - `supabase/migrations/002_learning_library.sql`: recursos da biblioteca e bucket privado.
+
+
+## Identidade visual — atualização editorial
+
+Esta atualização refina a interface com uma paleta de marfim, azul-petróleo, verde-sálvia e dourado fosco. O foco é oferecer contraste, hierarquia tipográfica, áreas de leitura confortáveis, feedback de interação e movimento discreto.
+
+- Preserva as páginas, componentes, autenticação e integração Supabase existentes.
+- Não exige nova migração SQL nem alterações no banco.
+- Inclui estados de foco visíveis, interações hover/active e respeito a `prefers-reduced-motion`.
+- A aparência pode depender do carregamento das fontes Google Fonts; há fontes de sistema como fallback.
+
+Após substituir os arquivos no GitHub, aguarde a implantação automática na Vercel e confira o resultado em desktop e celular.
