@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { BookOpen, ExternalLink, FileText, FileDown, PlayCircle, Search, Scale, Filter } from "lucide-react";
+import { BookOpen, ExternalLink, FileText, FileDown, PlayCircle, Search, Scale, Filter, Bookmark, BookmarkCheck } from "lucide-react";
 import { learningResources, type ResourceKind } from "@/lib/resources";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 const filters = ["Todos", "PDF", "Legislação", "Artigo", "Vídeo", "Livro"] as const;
+const departments = ["Todos", "Direito e instituições", "Economia e Finanças", "Tecnologia e Inteligência Artificial", "História e Geopolítica", "Filosofia e Pensamento Crítico", "Ciências e Matemática", "Minha biblioteca"] as const;
 type FilterKind = typeof filters[number];
 
 function iconFor(kind: ResourceKind) {
@@ -18,17 +19,36 @@ function iconFor(kind: ResourceKind) {
 
 type UploadedResource = {
   id: string; title: string; author: string; institution: string; kind: ResourceKind;
-  topic: string; description: string; url: string; note?: string; access: "Acesso aberto" | "Página oficial" | "Consulta online";
+  topic: string; department?: string; description: string; url: string; note?: string; access: "Acesso aberto" | "Página oficial" | "Consulta online";
 };
 
 export default function ResourceLibrary() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKind>("Todos");
+  const [department, setDepartment] = useState<(typeof departments)[number]>("Todos");
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [showSaved, setShowSaved] = useState(false);
   const [uploaded, setUploaded] = useState<UploadedResource[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [fileTitle, setFileTitle] = useState("");
   const [uploadMessage, setUploadMessage] = useState("");
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("atlas-library-bookmarks-v1");
+      if (saved) setSavedIds(JSON.parse(saved));
+    } catch { /* armazenamento local indisponível */ }
+  }, []);
+
+  useEffect(() => {
+    try { window.localStorage.setItem("atlas-library-bookmarks-v1", JSON.stringify(savedIds)); }
+    catch { /* armazenamento local indisponível */ }
+  }, [savedIds]);
+
+  function toggleSaved(id: string) {
+    setSavedIds(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -40,7 +60,7 @@ export default function ResourceLibrary() {
       if (!data || cancelled) return;
       const mapped = await Promise.all(data.filter(item => item.storage_path).map(async item => {
         const { data: signed } = await supabase!.storage.from("atlas-library").createSignedUrl(item.storage_path, 3600);
-        return { id: item.id, title: item.title, author: item.author || "Material pessoal", institution: item.institution || "Biblioteca pessoal", kind: "PDF" as ResourceKind, topic: item.topic || "Arquivo pessoal", description: item.description || "Arquivo enviado para sua biblioteca privada.", url: signed?.signedUrl || "", access: "Acesso aberto" as const };
+        return { id: item.id, title: item.title, author: item.author || "Material pessoal", institution: item.institution || "Biblioteca pessoal", kind: "PDF" as ResourceKind, topic: item.topic || "Arquivo pessoal", department: "Minha biblioteca", description: item.description || "Arquivo enviado para sua biblioteca privada.", url: signed?.signedUrl || "", access: "Acesso aberto" as const };
       }));
       if (!cancelled) setUploaded(mapped.filter(item => item.url));
     }
@@ -68,7 +88,7 @@ export default function ResourceLibrary() {
         throw recordError;
       }
       const { data: signed } = await supabase.storage.from("atlas-library").createSignedUrl(path, 3600);
-      if (signed?.signedUrl) setUploaded(current => [{ id: record.id, title: fileTitle.trim() || file.name, author: "Arquivo pessoal", institution: "Biblioteca pessoal", kind: "PDF", topic: "Material pessoal", description: "PDF privado enviado por você. Link de acesso temporário.", url: signed.signedUrl, access: "Acesso aberto" }, ...current]);
+      if (signed?.signedUrl) setUploaded(current => [{ id: record.id, title: fileTitle.trim() || file.name, author: "Arquivo pessoal", institution: "Biblioteca pessoal", kind: "PDF", topic: "Material pessoal", department: "Minha biblioteca", description: "PDF privado enviado por você. Link de acesso temporário.", url: signed.signedUrl, access: "Acesso aberto" }, ...current]);
       setFile(null); setFileTitle("");
       const input = document.getElementById("atlas-pdf-upload") as HTMLInputElement | null;
       if (input) input.value = "";
@@ -80,14 +100,15 @@ export default function ResourceLibrary() {
 
   const resources = useMemo(() => [...uploaded, ...learningResources].filter(resource => {
     const matchesFilter = filter === "Todos" || resource.kind === filter;
+    const matchesDepartment = department === "Todos" || resource.department === department;
     const haystack = `${resource.title} ${resource.author} ${resource.institution} ${resource.topic} ${resource.description}`.toLocaleLowerCase("pt-BR");
-    return matchesFilter && haystack.includes(query.toLocaleLowerCase("pt-BR"));
-  }), [filter, query, uploaded]);
+    return matchesFilter && matchesDepartment && (!showSaved || savedIds.includes(resource.id)) && haystack.includes(query.toLocaleLowerCase("pt-BR"));
+  }), [filter, department, query, uploaded, showSaved, savedIds]);
 
   return <section className="page-section resource-library-page">
     <div className="eyebrow">ACERVO MULTIMÍDIA CURADO</div>
     <h1>Biblioteca</h1>
-    <p className="page-intro">Materiais selecionados para aprofundar o curso de Fundamentos do Direito. Os links levam às fontes originais, editoras ou instituições responsáveis.</p>
+    <p className="page-intro">Materiais selecionados para os seis departamentos. Priorize fontes primárias, universidades, órgãos públicos, repositórios acadêmicos e conteúdos abertos.</p>
     <div className="library-feature library-feature-v2"><BookOpen size={28}/><div><h2>Uma biblioteca com origem identificada.</h2><p>Prioridade para legislação oficial, publicações acadêmicas de acesso aberto, repositórios públicos e catálogos editoriais. O ATLAS identifica quando um item é PDF, artigo, livro ou vídeo.</p></div></div>
     <form className="library-upload" onSubmit={uploadFile}>
       <div><div className="eyebrow">SUA COLEÇÃO PARTICULAR</div><h2>Adicionar PDF à biblioteca</h2><p>Envie seus próprios materiais de estudo. Os arquivos ficam em um bucket privado e só sua conta pode acessá-los.</p></div>
@@ -99,13 +120,20 @@ export default function ResourceLibrary() {
       <label className="search-box"><Search size={17}/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar por título, autor ou assunto..."/></label>
       <div className="library-filter-label"><Filter size={14}/> Tipo de material</div>
       <div className="library-filters">{filters.map(item => <button key={item} className={filter === item ? "active" : ""} onClick={() => setFilter(item)}>{item}</button>)}</div>
+      <div className="library-filter-label department-filter-label">Departamento</div>
+      <select className="library-department-select" value={department} onChange={event => setDepartment(event.target.value as (typeof departments)[number])}>
+        {departments.map(item => <option key={item} value={item}>{item}</option>)}
+      </select>
+      <button className={`library-saved-toggle ${showSaved ? "active" : ""}`} onClick={() => setShowSaved(value => !value)}>
+        {showSaved ? <BookmarkCheck size={14}/> : <Bookmark size={14}/>} {showSaved ? "Exibindo salvos" : `Ver salvos (${savedIds.length})`}
+      </button>
     </div>
-    <div className="library-results-head"><strong>{resources.length} materiais encontrados</strong><span>Departamento de Direito · Fundamentos</span></div>
+    <div className="library-results-head"><strong>{resources.length} materiais encontrados</strong><span>{department === "Todos" ? "Acervo multidisciplinar" : department}</span></div>
     <div className="resource-grid-v2">{resources.map(resource => {
       const Icon = iconFor(resource.kind);
       return <article className="resource-card-v2" key={resource.id}>
-        <div className="resource-card-top"><div className="resource-icon-v2"><Icon size={19}/></div><span className={`resource-kind kind-${resource.kind.toLowerCase()}`}>{resource.kind}</span></div>
-        <div className="resource-topic">{resource.topic}</div>
+        <div className="resource-card-top"><div className="resource-icon-v2"><Icon size={19}/></div><div className="resource-card-actions"><span className={`resource-kind kind-${resource.kind.toLowerCase()}`}>{resource.kind}</span><button className={`resource-save-button ${savedIds.includes(resource.id) ? "saved" : ""}`} onClick={() => toggleSaved(resource.id)} aria-label={savedIds.includes(resource.id) ? "Remover dos salvos" : "Salvar material"} title={savedIds.includes(resource.id) ? "Remover dos salvos" : "Salvar material"}>{savedIds.includes(resource.id) ? <BookmarkCheck size={15}/> : <Bookmark size={15}/>}</button></div></div>
+        <div className="resource-topic">{resource.department || "Acervo"} · {resource.topic}</div>
         <h2>{resource.title}</h2>
         <p className="resource-byline">{resource.author} · {resource.institution}</p>
         <p className="resource-description">{resource.description}</p>
@@ -114,6 +142,6 @@ export default function ResourceLibrary() {
       </article>;
     })}</div>
     {resources.length === 0 && <div className="empty-state"><Search size={24}/><strong>Nenhum material encontrado</strong><span>Tente outro termo ou selecione outro tipo de material.</span></div>}
-    <p className="source-note">Curadoria inicial do ATLAS. Links e versões de legislação podem mudar; confirme a atualização na instituição de origem. Livros comerciais são indicados por referência e catálogo, não disponibilizados ilegalmente para download.</p>
+    <p className="source-note">Curadoria do ATLAS. Links, versões e condições de acesso podem mudar; confirme a atualização na instituição de origem. Livros comerciais são indicados por referência e catálogo, não disponibilizados ilegalmente para download.</p>
   </section>;
 }
