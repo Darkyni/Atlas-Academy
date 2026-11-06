@@ -1,30 +1,38 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Activity, ArrowRight, Atom, BookOpen, Brain, Check, ChevronDown, Clock3,
   Compass, GraduationCap, Library, Menu, MessageSquareText, Search, Shield,
-  Sparkles, X, Scale, Globe2, Code2, Landmark, Gamepad2
+  Sparkles, X, Scale, Globe2, Code2, Landmark
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { lawCourse, lawLessons } from "@/lib/curriculum";
+import { expandedCourses, type AcademyCourse } from "@/lib/expanded-curriculum";
 import ResourceLibrary from "@/components/ResourceLibrary";
 import LearningLab from "@/components/LearningLab";
 
 const subjects = [
-  { id: "politica", title: "Política e geopolítica", desc: "Poder, instituições e relações internacionais.", icon: Globe2, tag: "Sociedade" },
-  { id: "direito", title: "Direito", desc: "Normas, direitos, Estado e pensamento jurídico.", icon: Scale, tag: "Instituições" },
-  { id: "tecnologia", title: "Tecnologia", desc: "Computação, inteligência artificial e segurança.", icon: Code2, tag: "Inovação" },
-  { id: "humanidades", title: "História, cultura e filosofia", desc: "Ideias e acontecimentos que moldaram o mundo.", icon: Landmark, tag: "Humanidades" },
-  { id: "exatas", title: "Física e matemática", desc: "Lógica, modelos e compreensão da natureza.", icon: Atom, tag: "Ciências" },
-  { id: "games", title: "Games e sistemas interativos", desc: "Mecânicas, simulação e sistemas complexos.", icon: Gamepad2, tag: "Criação" }
+  { id: "direito", title: "Direito e instituições", desc: "Normas, direitos, Estado e pensamento jurídico.", icon: Scale, tag: "Instituições" },
+  { id: "economia-financas", title: "Economia e finanças", desc: "Mercados, dinheiro, crédito e decisões econômicas.", icon: Activity, tag: "Economia" },
+  { id: "tecnologia-ia", title: "Tecnologia e inteligência artificial", desc: "Computação, IA, redes e segurança digital.", icon: Code2, tag: "Inovação" },
+  { id: "historia-geopolitica", title: "História e geopolítica", desc: "Processos históricos, poder e relações internacionais.", icon: Globe2, tag: "Humanidades" },
+  { id: "filosofia-pensamento", title: "Filosofia e pensamento crítico", desc: "Lógica, conhecimento, ética e argumentação.", icon: Landmark, tag: "Filosofia" },
+  { id: "ciencias-matematica", title: "Ciências e matemática", desc: "Raciocínio quantitativo, física e método científico.", icon: Atom, tag: "Ciências" }
+];
+
+const allCourses: AcademyCourse[] = [
+  { id: "direito", department: "Direito e instituições", ...lawCourse, outcomes: ["Compreender o Direito como sistema normativo e instituição social.", "Reconhecer a estrutura do Estado e da Constituição.", "Distinguir direitos, deveres e ramos jurídicos."], lessons: lawLessons },
+  ...expandedCourses
 ];
 
 const schedule = [
-  { day: "SEG", subject: "Política e geopolítica", lesson: "O que é poder político?", time: "35 min" },
-  { day: "TER", subject: "Direito", lesson: "Estado, lei e Constituição", time: "40 min" },
-  { day: "QUA", subject: "Tecnologia", lesson: "Como funciona um computador?", time: "35 min" },
-  { day: "QUI", subject: "História, cultura e filosofia", lesson: "O nascimento do pensamento filosófico", time: "40 min" }
+  { day: "SEG", subject: "Economia e finanças", lesson: "Escassez e custo de oportunidade", time: "40 min" },
+  { day: "TER", subject: "Direito e instituições", lesson: "Fundamentos do Direito", time: "40 min" },
+  { day: "QUA", subject: "Tecnologia e IA", lesson: "Como funciona um computador?", time: "45 min" },
+  { day: "QUI", subject: "História e geopolítica", lesson: "Estados e soberania", time: "45 min" },
+  { day: "SEX", subject: "Filosofia e pensamento crítico", lesson: "Argumentos e validade lógica", time: "45 min" },
+  { day: "SÁB", subject: "Ciências e matemática", lesson: "Proporções e porcentagens", time: "45 min" }
 ];
 
 type NavKey = "Visão geral" | "Academia" | "Biblioteca" | "Laboratório" | "Tutor IA";
@@ -43,10 +51,13 @@ export default function AtlasDashboard() {
   const [authMessage, setAuthMessage] = useState("");
   const [showAuth, setShowAuth] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [quizChoice, setQuizChoice] = useState<number | null>(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
-  const selectedLesson = lawLessons.find(lesson => lesson.id === selectedLessonId) ?? null;
+  const selectedCourse = allCourses.find(course => course.id === selectedCourseId) ?? allCourses[0];
+  const selectedLesson = allCourses.flatMap(course => course.lessons).find(lesson => lesson.id === selectedLessonId) ?? null;
+  const selectedLessonIndex = selectedCourse.lessons.findIndex(lesson => lesson.id === selectedLessonId);
 
   useEffect(() => {
     try {
@@ -60,6 +71,14 @@ export default function AtlasDashboard() {
     catch { /* armazenamento local indisponível */ }
   }, [completedLessons]);
 
+  function openCourse(id: string) {
+    setSelectedCourseId(id);
+    setSelectedLessonId(null);
+    setQuizChoice(null);
+    setQuizSubmitted(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function openLesson(id: string) {
     setSelectedLessonId(id);
     setQuizChoice(null);
@@ -71,10 +90,7 @@ export default function AtlasDashboard() {
     if (selectedLessonId) setCompletedLessons(old => old.includes(selectedLessonId) ? old : [...old, selectedLessonId]);
   }
 
-  const filtered = useMemo(
-    () => subjects.filter(s => `${s.title} ${s.desc}`.toLowerCase().includes(query.toLowerCase())),
-    [query]
-  );
+
   const progress = Math.round((completed.length / schedule.length) * 100);
 
   async function askTutor(e: React.FormEvent) {
@@ -159,7 +175,7 @@ export default function AtlasDashboard() {
         </header>
 
         <div className="content">
-          <div className="content-stage" key={`${active}-${selectedLessonId ?? "course-index"}`}>
+          <div className="content-stage" key={`${active}-${selectedCourseId}-${selectedLessonId ?? "course-index"}`}>
           {active === "Visão geral" && <>
             <section className="welcome-row">
               <div><div className="eyebrow">SUA JORNADA DE APRENDIZAGEM</div><h1>Conhecimento se constrói.<br/><em>Um dia de cada vez.</em></h1><p>Um espaço para estudar com intenção, conectar ideias e desenvolver autonomia intelectual.</p></div>
@@ -179,7 +195,7 @@ export default function AtlasDashboard() {
 
             <section className="section-block">
               <div className="section-heading"><div><div className="eyebrow">CURRÍCULO INTERDISCIPLINAR</div><h2>Campos do conhecimento</h2></div><button className="text-button" onClick={() => setActive("Academia")}>Ver academia <ArrowRight size={15}/></button></div>
-              <div className="subject-grid">{subjects.map(s => {const Icon=s.icon; return <button className="subject-card" key={s.id} onClick={() => setActive("Academia")}><div className={`subject-icon ${s.id}`}><Icon size={20}/></div><span className="subject-tag">{s.tag}</span><h3>{s.title}</h3><p>{s.desc}</p><span className="card-arrow"><ArrowRight size={16}/></span></button>;})}</div>
+              <div className="subject-grid">{subjects.map(s => {const Icon=s.icon; return <button className="subject-card" key={s.id} onClick={() => { openCourse(s.id); setActive("Academia"); }}><div className={`subject-icon ${s.id}`}><Icon size={20}/></div><span className="subject-tag">{s.tag}</span><h3>{s.title}</h3><p>{s.desc}</p><span className="card-arrow"><ArrowRight size={16}/></span></button>;})}</div>
             </section>
 
             <section className="section-block lower-grid">
@@ -193,10 +209,10 @@ export default function AtlasDashboard() {
           {active === "Academia" && <section className="page-section">
             {selectedLesson ? <>
               <button className="text-button lesson-back" onClick={() => setSelectedLessonId(null)}><ArrowRight size={14} className="back-arrow"/> Voltar ao curso</button>
-              <div className="eyebrow">FUNDAMENTOS DO DIREITO · AULA {String(lawLessons.findIndex(l=>l.id===selectedLesson.id)+1).padStart(2,"0")}</div>
+              <div className="eyebrow">{selectedCourse.department.toUpperCase()} · AULA {String(selectedLessonIndex + 1).padStart(2,"0")}</div>
               <h1>{selectedLesson.title}</h1>
               <p className="page-intro">{selectedLesson.objective}</p>
-              <div className="lesson-meta"><span><Clock3 size={14}/>{selectedLesson.duration} minutos</span><span><BookOpen size={14}/> Nível iniciante</span><span><GraduationCap size={14}/> Curso introdutório</span></div>
+              <div className="lesson-meta"><span><Clock3 size={14}/>{selectedLesson.duration} minutos</span><span><BookOpen size={14}/> Nível {selectedCourse.level.toLowerCase()}</span><span><GraduationCap size={14}/>{selectedCourse.title}</span></div>
               <article className="lesson-paper">
                 <div className="lesson-callout"><strong>Antes de começar</strong><p>{selectedLesson.objective}</p></div>
                 {selectedLesson.sections.map((section,index)=><section className="lesson-content-section" key={section.heading}><h2>{section.heading}</h2>{section.paragraphs.map((paragraph,i)=><p key={i}>{paragraph}</p>)}{section.points && <ul>{section.points.map(point=><li key={point}>{point}</li>)}</ul>}</section>)}
@@ -207,14 +223,23 @@ export default function AtlasDashboard() {
                 <section className="lesson-content-section"><h2>Referências para aprofundamento</h2><ul>{selectedLesson.references.map(ref=><li key={ref}>{ref}</li>)}</ul></section>
                 <div className="lesson-completion"><div><strong>{completedLessons.includes(selectedLesson.id) ? "Aula marcada como concluída" : "Terminou esta aula?"}</strong><p>Conclua depois de estudar o conteúdo e responder à questão de verificação.</p></div><button className="button button-dark" onClick={finishLesson} disabled={completedLessons.includes(selectedLesson.id) || !quizSubmitted || quizChoice!==selectedLesson.question.correct}>{completedLessons.includes(selectedLesson.id) ? <><Check size={15}/> Concluída</> : <>Marcar como concluída <ArrowRight size={15}/></>}</button></div>
               </article>
+            </> : selectedCourseId ? <>
+              <button className="text-button lesson-back" onClick={() => setSelectedCourseId(null)}><ArrowRight size={14} className="back-arrow"/> Todos os departamentos</button>
+              <div className="eyebrow">{selectedCourse.department.toUpperCase()} · TRILHA INTRODUTÓRIA</div>
+              <h1>{selectedCourse.title}</h1><p className="page-intro">{selectedCourse.subtitle}</p>
+              <div className="course-feature"><div><div className="eyebrow light">CURSO · {selectedCourse.level.toUpperCase()}</div><h2>{selectedCourse.title}</h2><p>{selectedCourse.description}</p><div className="course-feature-meta"><span><BookOpen size={14}/>{selectedCourse.workload}</span><span><GraduationCap size={14}/>{selectedCourse.level}</span></div></div><div className="course-feature-mark">A.</div></div>
+              <div className="course-progress"><div><strong>Seu percurso</strong><span>{selectedCourse.lessons.filter(lesson=>completedLessons.includes(lesson.id)).length} de {selectedCourse.lessons.length} aulas concluídas</span></div><div className="progress-track"><span style={{width:`${selectedCourse.lessons.filter(lesson=>completedLessons.includes(lesson.id)).length/selectedCourse.lessons.length*100}%`}}/></div></div>
+              <div className="course-layout"><div className="course-main"><div className="section-heading"><div><div className="eyebrow">PROGRAMA DO CURSO</div><h2>Sequência de aprendizagem</h2></div><span className="small-count">{selectedCourse.lessons.length} AULAS</span></div><div className="lesson-list">{selectedCourse.lessons.map((lesson,index)=><button className="lesson-list-item" key={lesson.id} onClick={()=>openLesson(lesson.id)}><span className={`lesson-number ${completedLessons.includes(lesson.id)?"done":""}`}>{completedLessons.includes(lesson.id)?<Check size={14}/>:String(index+1).padStart(2,"0")}</span><span className="lesson-list-copy"><strong>{lesson.title}</strong><small>{lesson.objective}</small></span><span className="lesson-duration">{lesson.duration} min</span><ArrowRight size={16}/></button>)}</div></div><aside className="course-aside"><div className="eyebrow">RESULTADOS DE APRENDIZAGEM</div><h3>Ao concluir, você deverá conseguir:</h3><ul>{selectedCourse.outcomes.map(outcome=><li key={outcome}>{outcome}</li>)}</ul><div className="course-aside-stat"><strong>{selectedCourse.lessons.length}</strong><span>aulas estruturadas</span></div><div className="course-aside-stat"><strong>1</strong><span>questão comentada por aula</span></div></aside></div>
             </> : <>
-              <div className="eyebrow">CURRÍCULO E FORMAÇÃO</div><h1>Academia</h1><p className="page-intro">Cursos organizados em módulos e aulas. Comece pelos fundamentos e avance com estudo, prática e revisão.</p>
-              <div className="search-box"><Search size={18}/><input placeholder="Buscar disciplina..." value={query} onChange={e=>setQuery(e.target.value)}/></div>
-              <div className="course-feature"><div><div className="eyebrow light">CURSO DISPONÍVEL · DEPARTAMENTO DE DIREITO</div><h2>{lawCourse.title}</h2><p>{lawCourse.subtitle}</p><div className="course-feature-meta"><span><BookOpen size={14}/>{lawCourse.workload}</span><span><GraduationCap size={14}/>{lawCourse.level}</span></div></div><div className="course-feature-mark">A.</div></div>
-              <div className="course-progress"><div><strong>Seu percurso</strong><span>{completedLessons.length} de {lawLessons.length} aulas concluídas</span></div><div className="progress-track"><span style={{width:`${completedLessons.length/lawLessons.length*100}%`}}/></div></div>
-              <div className="course-layout"><div className="course-main"><div className="section-heading"><div><div className="eyebrow">TRILHA INTRODUTÓRIA</div><h2>Programa do curso</h2></div><span className="small-count">{lawLessons.length} AULAS</span></div><div className="lesson-list">{lawLessons.map((lesson,index)=><button className="lesson-list-item" key={lesson.id} onClick={()=>openLesson(lesson.id)}><span className={`lesson-number ${completedLessons.includes(lesson.id)?"done":""}`}>{completedLessons.includes(lesson.id)?<Check size={14}/>:String(index+1).padStart(2,"0")}</span><span className="lesson-list-copy"><strong>{lesson.title}</strong><small>{lesson.objective}</small></span><span className="lesson-duration">{lesson.duration} min</span><ArrowRight size={16}/></button>)}</div></div><aside className="course-aside"><div className="eyebrow">SOBRE O CURSO</div><h3>{lawCourse.title}</h3><p>{lawCourse.description}</p><div className="course-aside-stat"><strong>10</strong><span>aulas estruturadas</span></div><div className="course-aside-stat"><strong>1</strong><span>avaliação por aula</span></div><div className="course-aside-stat"><strong>6h</strong><span>de estudo estimado</span></div><button className="button button-dark" onClick={()=>openLesson(lawLessons[0].id)}>Começar primeira aula <ArrowRight size={15}/></button></aside></div>
-              <div className="section-block"><div className="section-heading"><div><div className="eyebrow">OUTROS DEPARTAMENTOS</div><h2>Próximas áreas curriculares</h2></div></div><div className="subject-grid academy-grid">{filtered.filter(s=>s.id!=="direito").map(s=>{const Icon=s.icon;return <article className="subject-card academy-subject" key={s.id}><div className={`subject-icon ${s.id}`}><Icon size={20}/></div><span className="subject-tag">{s.tag}</span><h3>{s.title}</h3><p>{s.desc}</p><div className="course-footer"><span>Próxima etapa de desenvolvimento</span><span>Em planejamento</span></div></article>;})}</div></div>
+              <div className="eyebrow">CURRÍCULO E FORMAÇÃO</div><h1>Academia</h1><p className="page-intro">Seis departamentos, cursos progressivos e aprendizagem conectada. Escolha uma área para abrir sua trilha de estudos.</p>
+              <div className="search-box"><Search size={18}/><input placeholder="Buscar departamento ou curso..." value={query} onChange={e=>setQuery(e.target.value)}/></div>
+              <div className="subject-grid academy-grid">{allCourses.filter(course => `${course.title} ${course.department} ${course.description}`.toLowerCase().includes(query.toLowerCase())).map(course=>{
+                const subject = subjects.find(item=>item.id===course.id) ?? subjects[0]; const Icon=subject.icon;
+                const done=course.lessons.filter(lesson=>completedLessons.includes(lesson.id)).length;
+                return <button className="subject-card academy-subject" key={course.id} onClick={()=>openCourse(course.id)}><div className={`subject-icon ${course.id}`}><Icon size={20}/></div><span className="subject-tag">{course.department}</span><h3>{course.title}</h3><p>{course.description}</p><div className="course-footer"><span>{course.lessons.length} aulas · {course.level}</span><span>{done}/{course.lessons.length} concluídas</span></div><span className="card-arrow"><ArrowRight size={16}/></span></button>;
+              })}</div>
             </>}
+            {!selectedLesson && !selectedCourseId && <div className="section-block course-catalog-note"><div className="eyebrow">ESTRUTURA ACADÊMICA</div><h2>Aprender com profundidade e conexão</h2><p className="page-intro">Cada curso combina explicação teórica, conceitos essenciais, estudo de caso, questão comentada, reflexão e referências para aprofundamento. As trilhas serão ampliadas com atividades práticas, avaliações por módulo e materiais multimídia.</p></div>}
           </section>}
 
           {active === "Biblioteca" && <ResourceLibrary/>}
