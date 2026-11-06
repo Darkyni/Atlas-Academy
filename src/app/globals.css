@@ -454,3 +454,32 @@ a,button,.resource-card-v2,.metric-card,.lab-panel,.subject-card,.schedule-row{
   .tutor-chat,.schedule-panel,.principle-panel{animation:none!important}
   .button:after{display:none}
 }
+
+/* ATLAS page and lesson transitions: subtle, short, and reading-friendly. */
+.content-stage{
+  min-height: 1px;
+  transform-origin: 50% 12%;
+  animation: atlas-page-arrive .42s cubic-bezier(.2,.72,.24,1) both;
+  will-change: opacity, transform, filter;
+}
+@keyframes atlas-page-arrive{
+  from{opacity:0;transform:translate3d(0,12px,0) scale(.997);filter:blur(2px)}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1);filter:blur(0)}
+}
+/* Course and lesson entry points receive a clear pressed/selected response. */
+.lesson-list-item,.schedule-row,.daily-action .button,.course-aside .button,.lesson-back{
+  transition:background-color .22s ease,border-color .22s ease,color .22s ease,
+    box-shadow .22s ease,transform .22s cubic-bezier(.2,.7,.25,1);
+}
+.lesson-list-item:active,.schedule-row:active,.daily-action .button:active,.course-aside .button:active{
+  transform:scale(.992);
+}
+.lesson-list-item:focus-visible,.schedule-row:focus-visible,.daily-action .button:focus-visible,
+.course-aside .button:focus-visible,.lesson-back:focus-visible{
+  outline:2px solid #9a8057;
+  outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce){
+  .content-stage{animation:none;filter:none;transform:none;will-change:auto}
+  .lesson-list-item,.schedule-row,.daily-action .button,.course-aside .button,.lesson-back{transition:none}
+}
