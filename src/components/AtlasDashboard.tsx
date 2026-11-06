@@ -159,6 +159,7 @@ export default function AtlasDashboard() {
         </header>
 
         <div className="content">
+          <div className="content-stage" key={`${active}-${selectedLessonId ?? "course-index"}`}>
           {active === "Visão geral" && <>
             <section className="welcome-row">
               <div><div className="eyebrow">SUA JORNADA DE APRENDIZAGEM</div><h1>Conhecimento se constrói.<br/><em>Um dia de cada vez.</em></h1><p>Um espaço para estudar com intenção, conectar ideias e desenvolver autonomia intelectual.</p></div>
@@ -221,6 +222,7 @@ export default function AtlasDashboard() {
           {active === "Laboratório" && <LearningLab/>}
 
           {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O tutor deve explicar fundamentos, comparar perspectivas, propor exemplos e ajudar você a testar o próprio entendimento.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">ATLAS AI</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Confira informações importantes em fontes confiáveis.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
+          </div>
           <footer className="footer"><span>ATLAS ACADEMY</span><span>CONHECIMENTO EM CONSTRUÇÃO · 2026</span></footer>
         </div>
       </section>
