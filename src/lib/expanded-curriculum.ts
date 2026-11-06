@@ -267,3 +267,255 @@ export const expandedCourses: AcademyCourse[] = [
     ]
   }
 ];
+
+// Expansão curricular v6: módulos de consolidação e aplicação interdisciplinar.
+const additionalLessons: Record<string, Lesson[]> = {
+  "economia-financas": [
+    makeLesson("eco-05", "Crédito, endividamento e custo efetivo", 45,
+      "Comparar modalidades de crédito, reconhecer o custo total de uma dívida e identificar sinais de endividamento excessivo.",
+      [
+        {heading:"1. Crédito é antecipação de renda", paragraphs:[
+          "O crédito permite utilizar recursos hoje e pagar no futuro. Pode ajudar a financiar um bem durável, atravessar uma emergência ou organizar o fluxo de caixa. Entretanto, não cria renda: desloca pagamentos no tempo e normalmente cobra juros, tarifas, seguros ou outros encargos.",
+          "A decisão correta não depende apenas do valor da parcela. Uma prestação pequena pode esconder prazo longo e custo total elevado. Compare o valor líquido recebido, o total pago, o prazo, as taxas, as tarifas e as consequências do atraso."
+        ]},
+        {heading:"2. Juros, CET e risco", paragraphs:[
+          "O Custo Efetivo Total (CET) reúne os encargos que compõem o custo da operação, expresso em taxa anual. Ele permite comparar propostas de crédito de forma mais completa do que observar somente a taxa nominal ou a parcela anunciada. A comparação deve considerar o mesmo valor, prazo e condições.",
+          "Cartão rotativo, cheque especial, crédito pessoal, financiamento e consignado possuem estruturas e riscos diferentes. A taxa pode variar conforme garantias, perfil, instituição e legislação. Não existe uma modalidade universalmente melhor: é preciso ler o contrato e avaliar a capacidade real de pagamento."
+        ]},
+        {heading:"3. Sinais de alerta e estratégia", paragraphs:[
+          "Sinais de alerta incluem atrasos frequentes, uso de uma dívida para pagar outra, comprometimento crescente da renda e ausência de reserva para despesas previsíveis. Em uma situação de dificuldade, organize credores, saldos, taxas e vencimentos; priorize compreender o custo e negociar condições sustentáveis.",
+          "Uma renegociação só resolve o problema quando a nova prestação cabe no orçamento e o custo total é compreendido. Evite decisões sob pressão, promessas de aprovação garantida e ofertas que exigem pagamento antecipado sem transparência."
+        ]}
+      ],
+      [{term:"CET",definition:"Taxa que expressa o custo total da operação de crédito, considerando os encargos previstos."},{term:"Amortização",definition:"Redução do saldo devedor ao longo dos pagamentos."},{term:"Inadimplência",definition:"Descumprimento de uma obrigação de pagamento no prazo devido."}],
+      "Duas instituições oferecem R$ 5.000: uma anuncia parcela menor, mas em 48 meses; outra tem parcela maior, em 24 meses. Compare CET, total pago, tarifas e impacto mensal antes de decidir. A menor parcela isolada não demonstra o menor custo.",
+      "Qual comparação é mais adequada ao avaliar duas propostas de empréstimo?",
+      ["Escolher sempre a menor parcela.", "Comparar CET, prazo, total pago e capacidade de pagamento.", "Escolher a instituição com o anúncio mais chamativo.", "Ignorar tarifas quando a taxa nominal parece baixa."],1,
+      "A comparação deve considerar o custo efetivo total e o efeito do contrato no orçamento, não apenas o valor da prestação.",
+      "Que informações você exigiria antes de aceitar uma proposta de crédito? Como verificaria se a parcela cabe no orçamento?",
+      ["BANCO CENTRAL DO BRASIL. Cidadania Financeira e materiais sobre crédito e endividamento.", "CVM. Portal do Investidor — educação financeira."]),
+    makeLesson("eco-06", "Investimentos: risco, retorno, liquidez e diversificação", 50,
+      "Compreender os quatro eixos básicos de avaliação de investimentos e distinguir educação financeira de recomendação individual.",
+      [
+        {heading:"1. Quatro dimensões fundamentais", paragraphs:[
+          "Investimentos podem ser analisados por risco, retorno esperado, liquidez e horizonte de tempo. Risco é a possibilidade de o resultado diferir do esperado, inclusive com perda. Retorno é o ganho ou rendimento obtido. Liquidez é a facilidade e a velocidade de transformar o ativo em dinheiro sem perda relevante.",
+          "Essas dimensões se relacionam. Um ativo pode oferecer retorno potencial maior, mas também oscilações, risco de crédito ou dificuldade de venda. O prazo de um objetivo importa: dinheiro necessário em poucos meses não deve ser avaliado da mesma forma que recursos destinados a décadas."
+        ]},
+        {heading:"2. Diversificação e limites", paragraphs:[
+          "Diversificar significa distribuir recursos entre ativos, emissores, setores ou classes que não dependam exatamente dos mesmos fatores. A diversificação pode reduzir riscos específicos, mas não elimina riscos sistêmicos, perdas de mercado ou problemas de liquidez.",
+          "A análise deve observar quem emite o ativo, como o retorno é produzido, quais taxas existem, quais garantias se aplicam e em que condições o resgate ocorre. Rentabilidade passada não garante resultado futuro. Desconfie de promessas de retorno alto, fixo e sem risco."
+        ]},
+        {heading:"3. Processo de decisão responsável", paragraphs:[
+          "Antes de investir, organize reserva para emergências, dívidas e objetivos. Leia documentos oficiais, entenda o produto e verifique se a instituição e o profissional estão autorizados quando a atividade exigir registro. Não confunda conteúdo educativo com recomendação personalizada.",
+          "O perfil de risco não é um rótulo permanente: objetivos, renda, prazo, conhecimento e capacidade de suportar perdas podem mudar. Uma decisão coerente começa pelo objetivo e pelas restrições, não pelo produto da moda."
+        ]}
+      ],
+      [{term:"Liquidez",definition:"Facilidade de converter um ativo em dinheiro, considerando prazo e possíveis perdas."},{term:"Risco de crédito",definition:"Possibilidade de o emissor ou devedor não cumprir obrigações."},{term:"Diversificação",definition:"Distribuição de recursos para evitar concentração excessiva em uma única fonte de risco."}],
+      "Uma pessoa pretende usar o dinheiro da reserva em três meses e considera um ativo de alta oscilação com possibilidade de resgate apenas em condições desfavoráveis. O prazo e a necessidade de liquidez são incompatíveis com a escolha, mesmo que o retorno potencial pareça atraente.",
+      "Qual afirmação sobre diversificação é correta?",
+      ["Elimina qualquer possibilidade de perda.", "Garante retorno positivo em todos os períodos.", "Pode reduzir riscos específicos, mas não elimina riscos de mercado.", "Torna desnecessário entender o produto."],2,
+      "Diversificação reduz concentração e pode diminuir riscos específicos, mas não impede perdas decorrentes de fatores comuns ao mercado.",
+      "Escolha um objetivo financeiro hipotético. Qual prazo, liquidez e tolerância a perdas seriam coerentes com ele?",
+      ["CVM. Portal do Investidor — cursos e publicações educacionais.", "Tesouro Nacional. Tesouro Educacional.", "BANCO CENTRAL DO BRASIL. Caderno de Educação Financeira."])
+  ],
+  "tecnologia-ia": [
+    makeLesson("tec-05", "Dados, algoritmos e inteligência artificial", 50,
+      "Distinguir dados, algoritmos, modelos e sistemas de IA, reconhecendo limites, vieses e critérios de avaliação.",
+      [
+        {heading:"1. Do dado à decisão", paragraphs:[
+          "Dados são registros de observações, medições ou interações. Um algoritmo é um procedimento definido para transformar entradas em saídas. Um modelo de aprendizado de máquina ajusta parâmetros a partir de exemplos para identificar padrões e produzir previsões ou classificações.",
+          "Um sistema de IA não é apenas o modelo: envolve dados, infraestrutura, interface, regras de uso, monitoramento e pessoas que definem objetivos e interpretam resultados. Por isso, avaliar IA exige olhar o ciclo inteiro, não apenas a resposta exibida."
+        ]},
+        {heading:"2. Treinamento, validação e generalização", paragraphs:[
+          "Em aprendizado supervisionado, exemplos de entrada são associados a rótulos ou resultados conhecidos. O modelo ajusta seus parâmetros para reduzir erros em dados de treinamento. Uma parte separada dos dados pode ser usada para validação e teste, estimando como o modelo se comporta em exemplos não vistos.",
+          "Sobreajuste ocorre quando o modelo aprende detalhes específicos do conjunto de treinamento e não generaliza bem. Dados incompletos, enviesados ou desatualizados também comprometem resultados. Uma métrica alta não garante adequação ao contexto: é necessário considerar falsos positivos, falsos negativos e consequências para as pessoas."
+        ]},
+        {heading:"3. Uso responsável", paragraphs:[
+          "Sistemas generativos podem produzir texto, imagens, áudio e código plausíveis, mas plausibilidade não é prova de verdade. Podem inventar referências, reproduzir vieses, omitir incertezas ou revelar dados sensíveis quando são usados de forma inadequada.",
+          "Boas práticas incluem minimizar dados pessoais, verificar afirmações importantes em fontes primárias, documentar limites, manter supervisão humana e não delegar decisões de alto impacto sem governança e validação apropriadas."
+        ]}
+      ],
+      [{term:"Algoritmo",definition:"Sequência finita e organizada de instruções para resolver uma classe de problemas."},{term:"Modelo",definition:"Representação computacional ajustada para realizar tarefas a partir de dados."},{term:"Sobreajuste",definition:"Quando o modelo se adapta demais aos dados de treinamento e perde capacidade de generalização."}],
+      "Uma ferramenta classifica currículos com base em contratações anteriores. Se os dados históricos refletem desigualdades, o modelo pode reproduzi-las. Antes de usar o sistema, é necessário avaliar dados, critérios, taxas de erro, impactos e mecanismos de contestação.",
+      "Por que um modelo de IA pode apresentar desempenho ruim fora dos dados de treinamento?",
+      ["Porque algoritmos não usam dados.", "Porque pode haver sobreajuste ou mudança na distribuição dos dados.", "Porque toda IA é aleatória.", "Porque validação torna o modelo sempre perfeito."],1,
+      "A generalização depende da representatividade dos dados e da capacidade do modelo de lidar com exemplos diferentes dos vistos no treinamento.",
+      "Pense em uma decisão que poderia ser apoiada por IA. Quais erros seriam mais graves e quem deveria revisar o resultado?",
+      ["HARVARD UNIVERSITY. CS50 — Introduction to Computer Science.", "NIST. AI Risk Management Framework.", "OECD. Principles on Artificial Intelligence."]),
+    makeLesson("tec-06", "Segurança digital, identidade e proteção de dados", 50,
+      "Reconhecer ameaças digitais comuns e aplicar princípios básicos de segurança, privacidade e resposta a incidentes.",
+      [
+        {heading:"1. Ameaças e superfícies de ataque", paragraphs:[
+          "A segurança digital procura preservar confidencialidade, integridade e disponibilidade. Phishing tenta induzir alguém a revelar dados ou executar uma ação; malware é software criado para realizar atividades não autorizadas; engenharia social explora confiança, urgência ou autoridade aparente.",
+          "A superfície de ataque inclui dispositivos, contas, aplicativos, redes, serviços em nuvem, pessoas e processos. Uma conta protegida por senha forte ainda pode ser comprometida se o usuário aprovar um login falso ou reutilizar credenciais vazadas."
+        ]},
+        {heading:"2. Controles essenciais", paragraphs:[
+          "Use senhas únicas e longas, preferencialmente com gerenciador; ative autenticação multifator; mantenha sistema e aplicativos atualizados; faça cópias de segurança; limite permissões; e confirme solicitações sensíveis por um canal independente.",
+          "Em mensagens suspeitas, não clique por impulso. Verifique domínio, remetente, contexto e destino real dos links. Empresas legítimas não devem exigir que você informe códigos de autenticação ou senhas por mensagens inesperadas."
+        ]},
+        {heading:"3. Privacidade e resposta", paragraphs:[
+          "Proteção de dados envolve coletar apenas o necessário, definir finalidade, limitar acesso, proteger armazenamento e respeitar direitos dos titulares. No Brasil, a LGPD estabelece princípios e regras para o tratamento de dados pessoais, com bases legais e responsabilidades próprias.",
+          "Diante de incidente, preserve evidências, registre horários, desconecte o dispositivo se houver comprometimento ativo e procure canais oficiais. Evite apagar mensagens ou formatar equipamentos antes de avaliar a necessidade de preservar registros."
+        ]}
+      ],
+      [{term:"Phishing",definition:"Tentativa de fraude que usa mensagens ou páginas enganosas para obter dados ou induzir ações."},{term:"MFA",definition:"Autenticação multifator, que combina mais de um fator de verificação."},{term:"Privilégio mínimo",definition:"Conceder apenas as permissões necessárias para executar uma tarefa."}],
+      "Você recebe uma mensagem alegando ser do banco, com urgência para confirmar uma compra e um link semelhante ao domínio oficial. A atitude segura é não usar o link recebido, acessar o aplicativo ou endereço oficial por conta própria e verificar a notificação.",
+      "Qual prática reduz melhor o impacto da reutilização de senhas?",
+      ["Usar a mesma senha com pequenas variações.", "Guardar todas as senhas em um arquivo público.", "Usar senhas únicas com gerenciador e ativar MFA.", "Desativar atualizações automáticas."],2,
+      "Senhas únicas reduzem o efeito cascata de vazamentos, enquanto MFA adiciona uma camada de proteção.",
+      "Faça um inventário das suas contas mais importantes. Quais precisam de MFA, senha exclusiva e recuperação atualizada?",
+      ["OWASP. Top 10:2025 — riscos de segurança em aplicações web.", "ANPD. Materiais de orientação sobre proteção de dados pessoais.", "NIST. Digital Identity Guidelines."])
+  ],
+  "historia-geopolitica": [
+    makeLesson("his-05", "Estado, soberania e formação do sistema internacional", 50,
+      "Explicar os conceitos de Estado, soberania e sistema internacional, distinguindo autoridade interna e reconhecimento externo.",
+      [
+        {heading:"1. O que é um Estado?", paragraphs:[
+          "Em ciência política e relações internacionais, Estado costuma designar uma organização política que exerce autoridade sobre uma população em um território, por meio de instituições e de uma ordem jurídica. Governo é o conjunto de pessoas e órgãos que conduz temporariamente essas instituições; não é sinônimo de Estado.",
+          "Nação refere-se a uma comunidade histórica, cultural ou política imaginada como pertencente a um coletivo. Uma nação pode não possuir Estado próprio, e um Estado pode reunir diversas identidades nacionais. As categorias se relacionam, mas não são intercambiáveis."
+        ]},
+        {heading:"2. Soberania e limites", paragraphs:[
+          "Soberania é a ideia de autoridade política suprema no âmbito interno e independência jurídica em relação a outros Estados. Na prática, seu exercício é condicionado por constituições, tratados, interdependência econômica, organizações internacionais e capacidades materiais.",
+          "O princípio da igualdade soberana não significa que todos os Estados tenham o mesmo poder econômico ou militar. Significa uma igualdade jurídica formal entre Estados, enquanto a distribuição real de poder permanece desigual."
+        ]},
+        {heading:"3. Sistema internacional", paragraphs:[
+          "O sistema internacional é formado por Estados, organizações, empresas, movimentos, redes e regras que interagem além das fronteiras. Não existe um governo mundial com autoridade equivalente à de um Estado sobre seu território; por isso, cooperação, competição, negociação e conflito coexistem.",
+          "A análise geopolítica deve observar geografia, recursos, rotas, tecnologia, demografia, instituições e narrativas. Evite explicações monocausais: um conflito raramente pode ser explicado apenas por religião, petróleo, personalidade de líderes ou uma fronteira."
+        ]}
+      ],
+      [{term:"Estado",definition:"Organização política e jurídica que exerce autoridade sobre população e território."},{term:"Soberania",definition:"Autoridade política suprema internamente e independência jurídica externamente, sujeita a limites e compromissos."},{term:"Sistema internacional",definition:"Conjunto de atores, regras e relações que estruturam a política mundial."}],
+      "Um país assina um tratado internacional e depois debate sua implementação interna. A questão envolve soberania, compromissos internacionais, instituições domésticas e interpretação jurídica; não basta afirmar que o tratado elimina ou anula automaticamente a soberania.",
+      "Qual afirmação distingue corretamente Estado e governo?",
+      ["Estado e governo são sempre sinônimos.", "O governo é temporário e dirige instituições que integram a estrutura estatal.", "O Estado existe apenas durante eleições.", "Nação é sempre equivalente a território estatal."],1,
+      "O Estado é uma estrutura política e jurídica duradoura; governos ocupam temporariamente posições de direção e administração.",
+      "Escolha uma organização internacional e identifique quais decisões dependem dos Estados-membros e quais competências foram delegadas.",
+      ["ONU. Carta das Nações Unidas.", "Jackson, Robert; Sørensen, Georg. Introduction to International Relations.", "Our World in Data. Global development and historical datasets."]),
+    makeLesson("his-06", "Globalização, poder e interdependência", 50,
+      "Analisar a globalização como processo multidimensional e avaliar relações de dependência, cooperação e assimetria.",
+      [
+        {heading:"1. Globalização não é apenas comércio", paragraphs:[
+          "Globalização descreve a intensificação de fluxos transfronteiriços de bens, serviços, capitais, pessoas, informações, tecnologias e referências culturais. Esses fluxos conectam economias e sociedades, mas não se distribuem de maneira uniforme.",
+          "Cadeias globais de valor fragmentam etapas de produção entre países. Um produto pode depender de matérias-primas extraídas em uma região, componentes fabricados em outra, montagem em uma terceira e consumidores espalhados pelo mundo."
+        ]},
+        {heading:"2. Interdependência e vulnerabilidade", paragraphs:[
+          "A interdependência cria ganhos potenciais de especialização, escala e acesso a mercados, mas também vulnerabilidades. Choques logísticos, crises financeiras, sanções, guerras, pandemias e restrições tecnológicas podem afetar países que dependem de poucos fornecedores ou rotas.",
+          "Dependência não é automaticamente dominação. Para avaliar assimetrias, observe concentração de fornecedores, capacidade de substituição, controle de tecnologia, poder de barganha, reservas estratégicas e custos de ruptura."
+        ]},
+        {heading:"3. Como investigar afirmações geopolíticas", paragraphs:[
+          "Afirmações sobre poder mundial devem ser testadas com indicadores e séries históricas. PIB, população, comércio, energia, gastos militares, patentes e emissões medem dimensões diferentes. Nenhum indicador isolado representa todo o poder de um país.",
+          "Compare fontes, observe definições, identifique o período e diferencie correlação de causalidade. Dados quantitativos precisam de contexto histórico e institucional; narrativas históricas também devem ser confrontadas com evidências."
+        ]}
+      ],
+      [{term:"Globalização",definition:"Intensificação de conexões e fluxos econômicos, políticos, tecnológicos e culturais entre sociedades."},{term:"Interdependência",definition:"Situação em que atores dependem uns dos outros, com custos e vulnerabilidades recíprocas."},{term:"Cadeia global de valor",definition:"Conjunto de etapas de produção e distribuição realizadas em diferentes países."}],
+      "Uma indústria depende de um único país para obter um componente essencial. Uma crise diplomática interrompe o fornecimento. A análise deve considerar concentração, estoques, substitutos, tempo para diversificar e custos de reorganização.",
+      "Qual indicador isolado é suficiente para medir o poder de um Estado?",
+      ["PIB.", "População.", "Gastos militares.", "Nenhum deles isoladamente; o poder é multidimensional."],3,
+      "Poder envolve capacidades econômicas, militares, tecnológicas, diplomáticas, institucionais e influência cultural, entre outras dimensões.",
+      "Escolha um produto que você usa e investigue pelo menos três etapas de sua cadeia de produção. Onde estão as dependências?",
+      ["WORLD BANK. World Development Indicators.", "Our World in Data. Global development datasets.", "ONU. Carta das Nações Unidas."])
+  ],
+  "filosofia-pensamento": [
+    makeLesson("fil-05", "Ética, responsabilidade e dilemas morais", 50,
+      "Comparar abordagens éticas e construir uma análise argumentativa de dilemas envolvendo deveres, consequências e virtudes.",
+      [
+        {heading:"1. O que a ética investiga?", paragraphs:[
+          "A ética é uma área da filosofia que investiga fundamentos, critérios e justificativas para avaliar ações, instituições e modos de vida. Diferencia-se da simples descrição de costumes: perguntar o que uma comunidade considera correto é diferente de perguntar se essa prática pode ser justificada.",
+          "Dilemas morais surgem quando valores ou deveres entram em tensão. Uma decisão pode proteger um interesse e prejudicar outro; por isso, a análise precisa explicitar princípios, consequências, pessoas afetadas e alternativas disponíveis."
+        ]},
+        {heading:"2. Três famílias de teorias", paragraphs:[
+          "Abordagens consequencialistas avaliam ações principalmente por seus resultados. O utilitarismo, em linhas gerais, considera consequências para o bem-estar dos envolvidos. Uma dificuldade é medir e comparar benefícios e danos, especialmente quando direitos de minorias estão em jogo.",
+          "Abordagens deontológicas destacam deveres, regras e limites que não devem ser ultrapassados apenas porque uma consequência parece vantajosa. Éticas das virtudes enfatizam caráter, hábitos e qualidades como coragem, justiça, prudência e honestidade."
+        ]},
+        {heading:"3. Deliberação responsável", paragraphs:[
+          "Uma análise ética cuidadosa identifica fatos, incertezas, agentes, deveres, direitos, consequências previsíveis e alternativas. Também pergunta quem suporta os riscos e se os critérios poderiam ser defendidos publicamente perante os afetados.",
+          "Teorias diferentes podem produzir avaliações distintas. O objetivo do estudo não é decorar rótulos, mas compreender o que cada abordagem ilumina, quais problemas deixa em aberto e como sustentar uma conclusão com razões."
+        ]}
+      ],
+      [{term:"Consequencialismo",definition:"Família de teorias que avalia ações principalmente por suas consequências."},{term:"Deontologia",definition:"Abordagem que enfatiza deveres, regras e limites morais."},{term:"Virtude",definition:"Disposição estável de caráter que orienta uma pessoa a agir bem."}],
+      "Uma instituição considera monitorar comunicações privadas para prevenir fraudes. A avaliação ética deve examinar eficácia, proporcionalidade, privacidade, transparência, riscos de abuso e alternativas menos invasivas.",
+      "Qual alternativa representa melhor uma análise ética plural?",
+      ["Considerar apenas a intenção de quem age.", "Comparar deveres, consequências, direitos e virtudes relevantes.", "Tratar a opinião majoritária como prova definitiva.", "Ignorar pessoas afetadas indiretamente."],1,
+      "Dilemas complexos exigem explicitar diferentes dimensões morais e justificar por que determinado critério deve prevalecer.",
+      "Escolha um dilema tecnológico atual. Como uma teoria consequencialista e uma deontológica poderiam avaliá-lo de formas diferentes?",
+      ["ARISTÓTELES. Ética a Nicômaco.", "KANT, Immanuel. Fundamentação da Metafísica dos Costumes.", "Stanford Encyclopedia of Philosophy. Ethics and moral philosophy entries."]),
+    makeLesson("fil-06", "Conhecimento, ciência e limites da certeza", 50,
+      "Distinguir opinião, crença justificada, evidência e conhecimento científico, reconhecendo incerteza e revisão de teorias.",
+      [
+        {heading:"1. O problema do conhecimento", paragraphs:[
+          "A epistemologia investiga o que significa conhecer, como crenças podem ser justificadas e quais limites existem para nossas formas de conhecer. Uma afirmação pode ser verdadeira por acaso sem que a pessoa tenha boas razões para aceitá-la.",
+          "Evidência é aquilo que sustenta ou enfraquece uma hipótese. Sua força depende de qualidade, relevância, independência, método de obtenção e possibilidade de verificação. Repetir uma afirmação muitas vezes não a transforma em evidência."
+        ]},
+        {heading:"2. Ciência como processo", paragraphs:[
+          "A ciência não é uma coleção imutável de fatos nem um método único aplicado mecanicamente. É um conjunto de práticas de investigação que inclui observação, formulação de hipóteses, construção de modelos, experimentação, análise, crítica por pares e revisão.",
+          "Teorias científicas são explicações estruturadas que conectam evidências e permitem gerar previsões. Elas podem ser refinadas ou substituídas quando surgem dados, métodos ou explicações melhores. Revisão não é sinal de fracasso; é parte do funcionamento do conhecimento científico."
+        ]},
+        {heading:"3. Pensamento crítico diante de informação", paragraphs:[
+          "Ao avaliar uma alegação, pergunte quem a produziu, qual é a fonte original, que método foi usado, se há conflito de interesse, se outras equipes chegaram a resultados semelhantes e quais incertezas foram reconhecidas.",
+          "Correlação não prova causalidade. Uma amostra pequena pode não representar a população. Um gráfico pode distorcer escalas. Um relato pessoal pode ser sincero e ainda assim não demonstrar que o mesmo resultado ocorrerá para todos."
+        ]}
+      ],
+      [{term:"Epistemologia",definition:"Área da filosofia que investiga natureza, fontes, justificação e limites do conhecimento."},{term:"Hipótese",definition:"Proposição provisória que pode ser examinada por evidências e argumentos."},{term:"Reprodutibilidade",definition:"Possibilidade de obter resultados compatíveis ao repetir procedimentos sob condições adequadas."}],
+      "Um vídeo afirma que determinado alimento cura uma doença porque três pessoas relataram melhora. O relato pode gerar uma hipótese, mas não controla fatores como evolução natural, tratamentos simultâneos, seleção dos casos ou efeito placebo.",
+      "Qual atitude melhor representa pensamento científico?",
+      ["Nunca mudar de opinião.", "Aceitar a hipótese mais popular.", "Revisar conclusões diante de evidências melhores e métodos transparentes.", "Tratar toda opinião como igualmente comprovada."],2,
+      "O conhecimento científico é falível e autocorretivo: conclusões devem responder à qualidade das evidências e dos métodos.",
+      "Escolha uma afirmação que circula nas redes. Qual seria a fonte primária e que evidência permitiria testá-la?",
+      ["CHALMERS, Alan. O que é ciência afinal?", "Stanford Encyclopedia of Philosophy. Epistemology.", "WEINSTEIN, Yana et al. Teaching the science of learning."])
+  ],
+  "ciencias-matematica": [
+    makeLesson("cie-05", "Estatística, amostragem e interpretação de dados", 50,
+      "Interpretar medidas descritivas, reconhecer limitações de amostras e evitar conclusões causais indevidas.",
+      [
+        {heading:"1. Descrever dados", paragraphs:[
+          "Estatística descritiva organiza dados por tabelas, gráficos e medidas. A média soma os valores e divide pela quantidade de observações; a mediana é o valor central após ordenar os dados; a moda é o valor mais frequente. Cada medida responde a uma pergunta diferente.",
+          "Valores extremos podem deslocar a média. Em distribuições assimétricas, a mediana pode representar melhor o centro. A dispersão também importa: duas turmas podem ter a mesma média e resultados muito diferentes em sua distribuição."
+        ]},
+        {heading:"2. Amostragem e incerteza", paragraphs:[
+          "Uma amostra é um subconjunto usado para aprender sobre uma população. Para que a inferência seja confiável, o método de seleção precisa ser adequado à pergunta. Amostras de conveniência podem excluir grupos e produzir viés de seleção.",
+          "Margem de erro e intervalo de confiança expressam incerteza sob determinadas hipóteses metodológicas. Eles não corrigem automaticamente uma amostra enviesada, perguntas mal formuladas ou dados coletados de modo inadequado."
+        ]},
+        {heading:"3. Correlação e causalidade", paragraphs:[
+          "Correlação descreve associação entre variáveis. Causalidade exige evidências de que mudanças em uma variável produzem mudanças em outra, considerando explicações alternativas. Uma terceira variável pode influenciar ambas, ou a direção da relação pode ser diferente da imaginada.",
+          "Gráficos devem informar unidade, período, fonte e escala. Cortar eixos, misturar taxas com números absolutos ou escolher apenas intervalos convenientes pode induzir interpretações equivocadas."
+        ]}
+      ],
+      [{term:"Mediana",definition:"Valor central de um conjunto ordenado, dividindo as observações em duas metades."},{term:"Viés de seleção",definition:"Distorção produzida quando o processo de escolha da amostra favorece certos grupos ou resultados."},{term:"Correlação",definition:"Medida de associação entre variáveis, que por si só não demonstra causalidade."}],
+      "Uma pesquisa online pergunta a seguidores de uma página se aprovam uma política pública. O resultado não representa automaticamente toda a população: quem segue a página e decide responder pode diferir de quem não participa.",
+      "Por que uma pesquisa com milhares de respostas pode continuar enviesada?",
+      ["Porque amostras grandes nunca funcionam.", "Porque o tamanho não corrige necessariamente um processo de seleção inadequado.", "Porque mediana e média são sempre iguais.", "Porque estatística não permite estudar populações."],1,
+      "A qualidade da amostra depende do desenho e da seleção, não apenas do número de respostas.",
+      "Procure um gráfico em uma notícia. Identifique fonte, período, unidade, população e possíveis limitações.",
+      ["IBGE. Educa — dados, território e população.", "OpenStax. Introductory Statistics.", "WASSERSTEIN, Ronald; LAZAR, Nicole. The ASA Statement on p-values."]),
+    makeLesson("cie-06", "Método científico, experimentos e causalidade", 50,
+      "Formular hipóteses testáveis, identificar variáveis e compreender controles, replicação e limites de experimentos.",
+      [
+        {heading:"1. Pergunta e hipótese", paragraphs:[
+          "Uma investigação começa com uma pergunta delimitada. Uma hipótese propõe uma explicação ou previsão que pode ser confrontada com observações. Para ser útil, deve indicar quais resultados seriam compatíveis com ela e quais resultados a enfraqueceriam.",
+          "Variáveis são características que podem assumir valores diferentes. Em um experimento, a variável independente é manipulada ou comparada; a variável dependente é medida. Variáveis de controle ajudam a reduzir explicações alternativas."
+        ]},
+        {heading:"2. Grupos de comparação e aleatorização", paragraphs:[
+          "Um grupo de comparação permite estimar o que ocorreria sem a intervenção estudada. Quando viável e ético, a distribuição aleatória pode equilibrar fatores conhecidos e desconhecidos entre grupos, reduzindo vieses. Cegamento pode diminuir influência de expectativas na medição ou interpretação.",
+          "Nem toda pergunta pode ser respondida por experimento controlado. Em saúde, economia, história e ciências sociais, restrições éticas ou práticas podem exigir estudos observacionais, desenhos quase-experimentais e triangulação de evidências."
+        ]},
+        {heading:"3. Replicação e limites", paragraphs:[
+          "Um resultado isolado pode ocorrer por acaso, erro de medição, escolha analítica ou condições específicas. Replicação, transparência de métodos, compartilhamento de dados quando apropriado e revisão crítica ajudam a avaliar robustez.",
+          "A conclusão deve ser proporcional ao desenho. Um estudo observacional pode encontrar associação sem provar causalidade. Um experimento pequeno pode demonstrar um efeito em condições específicas sem garantir que ele se aplique a todos os contextos."
+        ]}
+      ],
+      [{term:"Variável independente",definition:"Fator manipulado ou comparado para investigar sua relação com um resultado."},{term:"Variável dependente",definition:"Resultado ou medida observada na investigação."},{term:"Grupo de controle",definition:"Grupo de comparação usado para estimar o que ocorreria sem a intervenção estudada."}],
+      "Uma escola testa um novo método de estudo em uma turma voluntária e compara suas notas com outra turma que não escolheu participar. Diferenças prévias entre os grupos podem explicar parte do resultado; a seleção não aleatória limita a inferência causal.",
+      "Qual prática fortalece uma inferência causal em um experimento?",
+      ["Ignorar variáveis que podem interferir.", "Escolher apenas resultados favoráveis.", "Usar grupo de comparação e controlar fatores relevantes sempre que possível.", "Concluir causalidade a partir de qualquer correlação."],2,
+      "Comparações bem planejadas e controle de fatores alternativos tornam a inferência mais robusta, embora nenhum desenho elimine toda incerteza.",
+      "Desenhe um experimento simples para testar se pausas curtas melhoram a retenção. Que variáveis precisariam ser controladas?",
+      ["OPENSTAX. Concepts of Biology / Introductory Statistics.", "PhET Interactive Simulations. Recursos de ciências e matemática.", "IBGE. Educa — educação estatística."])
+  ]
+};
+
+for (const course of expandedCourses) {
+  const additions = additionalLessons[course.id] ?? [];
+  course.lessons.push(...additions);
+  const minutes = course.lessons.reduce((sum, lesson) => sum + lesson.duration, 0);
+  course.workload = `${course.lessons.length} aulas · aproximadamente ${Math.ceil(minutes / 60)} horas`;
+}
+
