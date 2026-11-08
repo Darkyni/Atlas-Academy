@@ -1,4 +1,4 @@
-# ATLAS Academy — versão 0.4 · domínio e aprendizagem formativa
+# ATLAS Academy — versão 0.5 · redesign tecnológico e domínio da aprendizagem
 
 Plataforma pessoal de formação multidisciplinar em Next.js, React, TypeScript e Supabase. Esta versão parte da estrutura acadêmica v7 e acrescenta uma avaliação formativa explícita das cinco competências de aprendizagem: explicar, relacionar, questionar, aplicar e transferir.
 
@@ -70,6 +70,11 @@ Nunca exponha `service_role` no navegador ou no repositório.
 5. Execute a migration 004 apenas se desejar histórico de avaliações no Supabase e após confirmar que ainda não foi aplicada.
 
 Gerar o ZIP não publica o site. O deploy só pode ser confirmado no painel da Vercel.
+
+## Redesign visual v0.5
+A camada global de estilos foi reformulada para uma direção tecnológica/editorial: azul-marinho, azul elétrico, ciano e violeta em detalhes; tipografia DM Sans + Space Grotesk; sidebar e navegação com estados mais definidos; superfícies com profundidade moderada; cartões e métricas com feedback; tela de aula, curso e tutor com ajustes de consistência; responsividade e respeito a `prefers-reduced-motion`.
+
+O redesign é aplicado sobre os componentes existentes e não altera o conteúdo ou a lógica de persistência. A validação final em navegador e o build de produção ainda precisam ser executados em ambiente com dependências instaladas.
 
 ## Arquivos principais desta atualização
 - `src/components/MasteryAssessment.tsx`: interface de resposta, resultado e histórico local.
