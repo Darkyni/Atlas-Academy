@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Award, CheckCircle2, LockKeyhole, RotateCcw } from "lucide-react";
 import type { Lesson } from "@/lib/curriculum";
 
-type Props={courseId:string;lessons:Lesson[];completedCount:number};
+type Props={courseId:string;courseTitle?:string;lessons:Lesson[];completedCount:number};
 type AnswerMap=Record<string,number>;
 export default function CourseAssessment({courseId,courseTitle,lessons,completedCount}:Props){
  const [started,setStarted]=useState(false);const [questions,setQuestions]=useState<Lesson[]>([]);const [answers,setAnswers]=useState<AnswerMap>({});const [submitted,setSubmitted]=useState(false);const [best,setBest]=useState<number|null>(null);

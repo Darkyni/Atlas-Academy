@@ -13,6 +13,7 @@ import "@/lib/extended-lessons";
 import { learningResources } from "@/lib/resources";
 import LessonWorkbench from "@/components/LessonWorkbench";
 import CourseAssessment from "@/components/CourseAssessment";
+import MasteryAssessment from "@/components/MasteryAssessment";
 import ResourceLibrary from "@/components/ResourceLibrary";
 import LearningLab from "@/components/LearningLab";
 
@@ -89,7 +90,7 @@ export default function AtlasDashboard() {
                 await supabase.from("student_lesson_progress").upsert(localOnlyIds.map(lesson_id => ({
                   user_id: auth.user!.id, lesson_id,
                   course_id: allCourses.find(course => course.lessons.some(lesson => lesson.id === lesson_id))?.id || "direito",
-                  completed: true, score: 100,
+                  completed: true, score: null,
                   completed_at: new Date().toISOString(), updated_at: new Date().toISOString()
                 })), { onConflict: "user_id,lesson_id" });
               }
@@ -139,7 +140,7 @@ export default function AtlasDashboard() {
             lesson_id: selectedLessonId,
             course_id: selectedCourse.id,
             completed: true,
-            score: 100,
+            score: null,
             completed_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }, { onConflict: "user_id,lesson_id" });
@@ -198,7 +199,7 @@ export default function AtlasDashboard() {
           await supabase.from("student_lesson_progress").upsert(localOnlyIds.map(lesson_id => ({
             user_id: auth.user!.id, lesson_id,
             course_id: allCourses.find(course => course.lessons.some(lesson => lesson.id === lesson_id))?.id || "direito",
-            completed: true, score: 100,
+            completed: true, score: null,
             completed_at: new Date().toISOString(), updated_at: new Date().toISOString()
           })), { onConflict: "user_id,lesson_id" });
         }
@@ -303,6 +304,7 @@ export default function AtlasDashboard() {
                 <section className="lesson-content-section"><h2>Referências para aprofundamento</h2><ul>{selectedLesson.references.map(ref=><li key={ref}>{ref}</li>)}</ul></section>
                 {relatedResources.length>0 && <section className="lesson-content-section related-resources"><h2>Materiais relacionados</h2><p>Continue o estudo em fontes oficiais, livros e materiais acadêmicos selecionados para esta área.</p><div>{relatedResources.map(resource=><a key={resource.id} href={resource.url} target="_blank" rel="noreferrer"><strong>{resource.title}</strong><span>{resource.institution} · {resource.kind}</span></a>)}</div></section>}
                 <LessonWorkbench lessonId={selectedLesson.id} reflectionPrompt={selectedLesson.reflection} casePrompt={selectedLesson.caseStudy}/>
+                <MasteryAssessment courseId={selectedCourse.id} courseTitle={selectedCourse.title} lessonId={selectedLesson.id} lessonTitle={selectedLesson.title} objective={selectedLesson.objective} caseStudy={selectedLesson.caseStudy} lessonContext={selectedLesson.sections.map(section=>`${section.heading}\n${section.paragraphs.join("\n")}`).join("\n\n")+`\n\nConceitos essenciais: ${selectedLesson.keyTerms.map(term=>`${term.term}: ${term.definition}`).join("; ")}`} reflection={selectedLesson.reflection}/>
                 <div className="lesson-completion"><div><strong>{completedLessons.includes(selectedLesson.id) ? "Aula marcada como concluída" : "Terminou esta aula?"}</strong><p>Conclua depois de estudar o conteúdo e responder à questão de verificação.</p></div><button className="button button-dark" onClick={finishLesson} disabled={completedLessons.includes(selectedLesson.id) || !quizSubmitted || quizChoice!==selectedLesson.question.correct}>{completedLessons.includes(selectedLesson.id) ? <><Check size={15}/> Concluída</> : <>Marcar como concluída <ArrowRight size={15}/></>}</button></div>
               </article>
             </> : selectedCourseId ? <>
