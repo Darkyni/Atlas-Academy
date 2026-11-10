@@ -1,65 +1,58 @@
-# ATLAS Academy — Build Status v0.5
+# ATLAS Academy — Build Status v0.8
 
-## Atualização
-- Data: 2026-11-08
-- Pacote de origem recebido nesta conversa: `Atlas-Academy-main(3).zip`.
-- Base identificada: versão 0.4.
-- Stack declarada: Next.js 15, React 19, TypeScript 5.8, Supabase JS 2.
-- Currículo encontrado: 55 aulas distribuídas em seis trilhas introdutórias.
-- Biblioteca declarada: 44 recursos cadastrados nas seis áreas.
+## Objetivo desta etapa
+Evoluir a versão v0.7 para uma experiência mais imersiva e academicamente robusta, sem substituir a arquitetura existente nem remover as seis disciplinas.
 
-## Auditoria desta etapa
-- A estrutura atual foi preservada; não houve reinicialização do projeto.
-- O dashboard existente já contém navegação para Visão geral, Academia, Biblioteca, Laboratório e Tutor IA.
-- O CSS original apresentava uma linguagem editorial sóbria, com marfim, grafite, azul-petróleo e tipografia serifada; isso foi identificado como desalinhado com a nova direção tecnológica solicitada.
-- O código mantém funcionalidades já existentes, incluindo avaliação por competências, avaliação objetiva, biblioteca, laboratório, progresso e chamadas de servidor para tutor/avaliação.
-- A presença de componentes e rotas não comprova, por si só, a operação em produção. Integrações reais continuam dependentes de configuração e testes externos.
+## Implementado
+### Experiência visual e interação
+- Núcleo geométrico tridimensional CSS na Cartografia do Saber, com cubo em perspectiva, anéis técnicos e animação de baixa intensidade.
+- Cartões de departamento com profundidade, elevação, perspectiva e estados de foco.
+- Ilustração de abertura com profundidade 3D em hover.
+- Área de jogos com identidade visual mais forte, estatísticas, filtro por disciplina e pistas.
+- Estados de movimento reduzido respeitados por `prefers-reduced-motion`.
+- Nenhuma dependência externa de 3D foi adicionada: os efeitos usam CSS e SVG já existentes para manter a aplicação leve.
 
-## Referências externas consultadas
-- Alura, “Temos novidades na plataforma Alura!” (16/07/2024): reorganização do dashboard/menu para reduzir distrações e facilitar a retomada dos estudos; busca mais acessível; formações e planos de estudo em destaque. URL: https://www.alura.com.br/artigos/novidades-plataforma-alura
-- Alura, “Conheça a nova página de aula da Alura” (atualização indicada em 18/01/2026): foco no conteúdo, menu lateral persistente/recolhível e feedback imediato nas questões. URL: https://www.alura.com.br/artigos/conheca-a-nova-pagina-de-aula-da-alura
-- Alura, “Quais são os cursos disponíveis dentro da Alura?”: organização em carreiras, formações, trilhas, cursos avulsos e planos de estudo. URL: https://suporte.alura.com.br/quais-s%C3%A3o-os-cursos-dispon%C3%ADveis-dentro-da-alura
+### Currículo
+- Acrescentadas seis aulas avançadas, uma por departamento.
+- Currículo total esperado: **91 aulas** (85 da v0.7 + 6 novas).
+- Novas aulas: Direitos do consumidor; Orçamento e fluxo de caixa; Modelagem de bancos de dados; Brasil republicano; Epistemologia; Funções e modelos matemáticos.
+- Cada aula inclui objetivo, contexto, explicação conceitual, aplicação, termos, caso, pergunta comentada, reflexão e referências.
+- Novas aulas foram associadas ao curso/departamento correspondente e aos rótulos dos módulos.
 
-As referências foram usadas como princípios de UX (retomada, descoberta, organização progressiva e foco no conteúdo), não como modelo para copiar marca ou telas.
+### Jogos e aprendizagem ativa
+- Área ampliada de 6 para **18 missões**, três por departamento.
+- Formatos: estudos de caso, cálculo, sequência de raciocínio e verificação conceitual. Quatro missões de sequência usam ordenação interativa de cartões (toque para montar a ordem, desfazer última etapa e conferir).
+- Adicionadas pistas opcionais, explicações pós-resposta, filtro por departamento, estatísticas e reinício.
+- Pontuação continua persistida no `localStorage`; leitura migra os resultados da chave v1 para v2 quando disponível.
 
-## Implementado na v0.5 — redesign visual
-- Reformulada a camada visual global em `src/app/globals.css`.
-- Nova direção: plataforma educacional tecnológica/editorial, com azul-marinho, azul elétrico, ciano e violeta em detalhes, superfícies claras, contraste mais forte e profundidade moderada.
-- Sidebar redesenhada com gradientes discretos, estados ativos mais claros e microinterações.
-- Cabeçalho com aparência translúcida e sticky.
-- Dashboard: tipografia Space Grotesk, área de retomada de estudos com tratamento visual mais expressivo e métricas em cartões elevados.
-- Cartões de departamentos, métricas, listas de aulas e superfícies de conteúdo receberam bordas, raios, estados hover e sombras consistentes.
-- Tela de aula, áreas de curso, biblioteca e tutor receberam ajustes globais compatíveis com as classes existentes.
-- Adicionadas animações discretas de entrada e feedback de foco visível.
-- Responsividade refinada para tablet e dispositivos móveis.
-- `prefers-reduced-motion` respeitado.
-- Não foram adicionadas dependências nem migrations nesta etapa.
-- Funcionalidades e estrutura curricular existentes foram preservadas.
+## Arquivos alterados
+- `src/components/LearningArcade.tsx` — 18 missões e interface renovada.
+- `src/components/KnowledgeMap.tsx` — núcleo geométrico 3D.
+- `src/components/AtlasDashboard.tsx` — associação das novas aulas e módulos.
+- `src/lib/advanced-learning.ts` — seis novas aulas avançadas.
+- `src/app/globals.css` — efeitos 3D, profundidade, animações e responsividade.
+- `README.md` e `package.json` — versão 0.8.0 e documentação.
 
-## Verificações desta etapa
-- ZIP de origem extraído com sucesso: 49 entradas.
-- CSS atualizado: contagem de chaves balanceada (729 `{` e 729 `}`).
-- Não foi executado build Next.js nesta etapa.
-- Não foram executados testes de navegador, autenticação, Supabase ou OpenAI.
-- Não foi realizado deploy nem alteração no GitHub/Vercel.
+## Verificações realizadas
+- Transpilação sintática TypeScript/TSX: 20 arquivos, zero erros de sintaxe.
+- Identificadores das aulas avançadas: 18 únicos.
+- Identificadores dos jogos: 18 únicos.
+- CSS: 1.084 chaves de abertura e 1.084 de fechamento.
+- Nenhuma dependência nova ou migration Supabase adicionada.
+- ZIP final será validado após compactação.
 
-## Pendências reais
-- Instalar dependências e executar `npm run typecheck` e `npm run build` em ambiente com acesso aos pacotes.
-- Validar visualmente em navegador real (desktop, tablet e celular) e corrigir diferenças encontradas.
-- Testar os fluxos autenticados e de persistência no Supabase.
-- Testar tutor e avaliação discursiva com `OPENAI_API_KEY` configurada.
-- Continuar expansão curricular além das seis trilhas introdutórias atuais.
-- Expandir sincronização em nuvem de notas, flashcards e demais dados pessoais.
-- Avaliar acessibilidade com ferramentas automatizadas e navegação por teclado.
+## Limitações conhecidas
+- `npm install --ignore-scripts --no-audit --no-fund` excedeu o limite de execução do ambiente. Não há `node_modules`; portanto `npm run typecheck` e `npm run build` não puderam ser concluídos. O `tsc` executado sem dependências produziu erros esperados de módulos e tipos ausentes (Next.js, React, Lucide, Supabase e Node), não um resultado válido de build.
+- Não foi possível executar testes reais em navegador, mobile, integração Supabase ou tutor IA.
+- A pontuação dos jogos fica no navegador e não sincroniza com Supabase.
+- A biblioteca mantém 73 recursos catalogados; vídeos são links para portais, cursos e playlists oficiais, não necessariamente vídeos incorporados.
+- Os seis departamentos ainda têm uma trilha principal cada; a separação em vários cursos independentes por departamento e trilhas intermediárias/avançadas completas é trabalho futuro. As 91 aulas representam ampliação substancial, mas não equivalem a uma enciclopédia ou a todos os conteúdos possíveis de cada área.
+- Nenhum deploy foi realizado ou confirmado.
 
-## Próxima etapa recomendada
-1. Validar build e tipos.
-2. Fazer revisão visual em navegador com screenshots das telas principais.
-3. Ajustar os componentes individualmente conforme a validação visual.
-4. Continuar expansão acadêmica e persistência, priorizando os requisitos ainda pendentes.
-
-## Segurança e integridade
-- Nenhuma credencial foi adicionada ou alterada.
-- Nenhum dado do Supabase foi acessado ou modificado.
-- Nenhuma migration foi executada.
-- O ZIP entregue representa arquivos atualizados, não um deploy publicado.
+## Próximas etapas para uma versão de produção
+1. Instalar dependências em ambiente com acesso ao registry npm e executar `npm run typecheck` e `npm run build`.
+2. Testar mapa, navegação, jogos, biblioteca, aulas e responsividade em navegador real.
+3. Criar cursos independentes por disciplina, com pré-requisitos, níveis e projetos de conclusão.
+4. Incorporar players somente quando o provedor permitir embed; manter links oficiais nos demais casos.
+5. Sincronizar notas, flashcards, pontuação e histórico de aprendizagem no Supabase com políticas RLS verificadas.
+6. Revisar cada referência externa e atualizar links que mudarem.
