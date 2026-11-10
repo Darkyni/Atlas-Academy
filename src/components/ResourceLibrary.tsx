@@ -5,7 +5,7 @@ import { BookOpen, ExternalLink, FileText, FileDown, PlayCircle, Search, Scale, 
 import { learningResources, type ResourceKind } from "@/lib/resources";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
-const filters = ["Todos", "PDF", "Legislação", "Artigo", "Vídeo", "Livro"] as const;
+const filters = ["Todos", "PDF", "Legislação", "Artigo", "Vídeo", "Curso", "Livro"] as const;
 const departments = ["Todos", "Direito e instituições", "Economia e Finanças", "Tecnologia e Inteligência Artificial", "História e Geopolítica", "Filosofia e Pensamento Crítico", "Ciências e Matemática", "Minha biblioteca"] as const;
 type FilterKind = typeof filters[number];
 
@@ -13,7 +13,7 @@ function iconFor(kind: ResourceKind) {
   if (kind === "PDF") return FileDown;
   if (kind === "Vídeo") return PlayCircle;
   if (kind === "Legislação") return Scale;
-  if (kind === "Livro") return BookOpen;
+  if (kind === "Livro" || kind === "Curso") return BookOpen;
   return FileText;
 }
 
@@ -104,6 +104,10 @@ export default function ResourceLibrary() {
     const haystack = `${resource.title} ${resource.author} ${resource.institution} ${resource.topic} ${resource.description}`.toLocaleLowerCase("pt-BR");
     return matchesFilter && matchesDepartment && (!showSaved || savedIds.includes(resource.id)) && haystack.includes(query.toLocaleLowerCase("pt-BR"));
   }), [filter, department, query, uploaded, showSaved, savedIds]);
+  const orderedResources = useMemo(() => {
+    const order = departments.slice(1, 7);
+    return [...resources].sort((a,b) => order.indexOf(a.department || "") - order.indexOf(b.department || "") || a.title.localeCompare(b.title, "pt-BR"));
+  }, [resources]);
 
   return <section className="page-section resource-library-page">
     <div className="eyebrow">ACERVO MULTIMÍDIA CURADO</div>
@@ -120,18 +124,16 @@ export default function ResourceLibrary() {
       <label className="search-box"><Search size={17}/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar por título, autor ou assunto..."/></label>
       <div className="library-filter-label"><Filter size={14}/> Tipo de material</div>
       <div className="library-filters">{filters.map(item => <button key={item} className={filter === item ? "active" : ""} onClick={() => setFilter(item)}>{item}</button>)}</div>
-      <div className="library-filter-label department-filter-label">Departamento</div>
-      <select className="library-department-select" value={department} onChange={event => setDepartment(event.target.value as (typeof departments)[number])}>
-        {departments.map(item => <option key={item} value={item}>{item}</option>)}
-      </select>
       <button className={`library-saved-toggle ${showSaved ? "active" : ""}`} onClick={() => setShowSaved(value => !value)}>
         {showSaved ? <BookmarkCheck size={14}/> : <Bookmark size={14}/>} {showSaved ? "Exibindo salvos" : `Ver salvos (${savedIds.length})`}
       </button>
     </div>
     <div className="library-results-head"><strong>{resources.length} materiais encontrados</strong><span>{department === "Todos" ? "Acervo multidisciplinar" : department}</span></div>
-    <div className="resource-grid-v2">{resources.map(resource => {
+    <div className="resource-grid-v2">{orderedResources.map((resource,index) => {
+      const previousDepartment = orderedResources[index-1]?.department;
+      const showDepartmentHeading = department === "Todos" && resource.department !== previousDepartment;
       const Icon = iconFor(resource.kind);
-      return <article className="resource-card-v2" key={resource.id}>
+      return <div className="resource-group-wrap" key={resource.id}>{showDepartmentHeading && <div className="resource-group-heading"><span>{resource.department || "Acervo"}</span><i/></div>}<article className="resource-card-v2">
         <div className="resource-card-top"><div className="resource-icon-v2"><Icon size={19}/></div><div className="resource-card-actions"><span className={`resource-kind kind-${resource.kind.toLowerCase()}`}>{resource.kind}</span><button className={`resource-save-button ${savedIds.includes(resource.id) ? "saved" : ""}`} onClick={() => toggleSaved(resource.id)} aria-label={savedIds.includes(resource.id) ? "Remover dos salvos" : "Salvar material"} title={savedIds.includes(resource.id) ? "Remover dos salvos" : "Salvar material"}>{savedIds.includes(resource.id) ? <BookmarkCheck size={15}/> : <Bookmark size={15}/>}</button></div></div>
         <div className="resource-topic">{resource.department || "Acervo"} · {resource.topic}</div>
         <h2>{resource.title}</h2>
@@ -139,7 +141,7 @@ export default function ResourceLibrary() {
         <p className="resource-description">{resource.description}</p>
         {resource.note && <p className="resource-note">{resource.note}</p>}
         <div className="resource-card-bottom"><span>{resource.access}</span><a href={resource.url} target="_blank" rel="noreferrer">Acessar material <ExternalLink size={13}/></a></div>
-      </article>;
+      </article></div>;
     })}</div>
     {resources.length === 0 && <div className="empty-state"><Search size={24}/><strong>Nenhum material encontrado</strong><span>Tente outro termo ou selecione outro tipo de material.</span></div>}
     <p className="source-note">Curadoria do ATLAS. Links, versões e condições de acesso podem mudar; confirme a atualização na instituição de origem. Livros comerciais são indicados por referência e catálogo, não disponibilizados ilegalmente para download.</p>

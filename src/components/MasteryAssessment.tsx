@@ -84,7 +84,7 @@ export default function MasteryAssessment(props: Props) {
   }, [props.lessonId]);
 
   const completed = useMemo(() => dimensions.filter(item => responses[item.id].trim().length >= 40).length, [responses]);
-  const average = evaluation ? Number((Object.values(evaluation.scores).reduce((sum, score) => sum + score, 0) / 5).toFixed(1)) : null;
+  const average = evaluation ? Number((Object.values(evaluation.scores).reduce<number>((sum, score) => sum + Number(score), 0) / 5).toFixed(1)) : null;
 
   async function evaluate() {
     if (completed !== 5) { setMessage("Responda às cinco dimensões com pelo menos 40 caracteres em cada campo."); return; }

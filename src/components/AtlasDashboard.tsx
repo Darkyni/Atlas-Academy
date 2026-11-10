@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  Activity, ArrowRight, Atom, BookOpen, Brain, Check, ChevronDown, Clock3,
+  Activity, ArrowRight, Atom, BookOpen, Brain, CalendarDays, Check, ChevronDown, Clock3,
   Compass, GraduationCap, Library, Menu, MessageSquareText, Search, Shield,
   Sparkles, X, Scale, Globe2, Code2, Landmark
 } from "lucide-react";
@@ -11,11 +11,15 @@ import { lawCourse, lawLessons } from "@/lib/curriculum";
 import { expandedCourses, type AcademyCourse } from "@/lib/expanded-curriculum";
 import "@/lib/extended-lessons";
 import { learningResources } from "@/lib/resources";
+import { atlasExtensionLessons } from "@/lib/atlas-extension";
 import LessonWorkbench from "@/components/LessonWorkbench";
 import CourseAssessment from "@/components/CourseAssessment";
 import MasteryAssessment from "@/components/MasteryAssessment";
 import ResourceLibrary from "@/components/ResourceLibrary";
 import LearningLab from "@/components/LearningLab";
+import KnowledgeMap from "@/components/KnowledgeMap";
+import LearningArcade from "@/components/LearningArcade";
+import { advancedLessons } from "@/lib/advanced-learning";
 
 const subjects = [
   { id: "direito", title: "Direito e instituições", desc: "Normas, direitos, Estado e pensamento jurídico.", icon: Scale, tag: "Instituições" },
@@ -31,7 +35,35 @@ const allCourses: AcademyCourse[] = [
   ...expandedCourses
 ];
 
-const courseModuleLabels = ["Fundamentos e linguagem", "Mecanismos e modelos", "Aplicação e aprofundamento", "Síntese e extensão"];
+const extensionByCourse: Record<string, string[]> = {
+  direito: ["direito-11", "direito-12", "direito-13"],
+  "economia-financas": ["eco-10", "eco-11", "eco-12"],
+  "tecnologia-ia": ["tec-10", "tec-11", "tec-12"],
+  "historia-geopolitica": ["his-10", "his-11", "his-12"],
+  "filosofia-pensamento": ["fil-10", "fil-11", "fil-12"],
+  "ciencias-matematica": ["cie-10", "cie-11", "cie-12"]
+};
+const advancedByCourse: Record<string, string[]> = {
+  direito: ["direito-14", "direito-15", "direito-16"],
+  "economia-financas": ["eco-13", "eco-14", "eco-16"],
+  "tecnologia-ia": ["tec-13", "tec-14", "tec-16"],
+  "historia-geopolitica": ["his-13", "his-14", "his-16"],
+  "filosofia-pensamento": ["fil-13", "fil-14", "fil-16"],
+  "ciencias-matematica": ["cie-13", "cie-14", "cie-16"]
+};
+for (const course of allCourses) {
+  const extraIds = extensionByCourse[course.id] ?? [];
+  course.lessons = [...course.lessons, ...atlasExtensionLessons.filter(lesson => extraIds.includes(lesson.id)), ...advancedLessons.filter(lesson => (advancedByCourse[course.id] ?? []).includes(lesson.id))];
+  course.workload = `${course.lessons.length} aulas · trilha organizada por módulos`;
+}
+const courseModuleLabels: Record<string, string[]> = {
+  direito: ["Fundamentos do Direito", "Estado e Constituição", "Ramos e instituições", "Direitos e relações jurídicas", "Responsabilidade e prática", "Consumo e relações jurídicas"],
+  "economia-financas": ["Fundamentos econômicos", "Mercados e instituições", "Finanças pessoais", "Indicadores e sistema financeiro", "Juros, risco e investimentos", "Orçamento e decisões financeiras"],
+  "tecnologia-ia": ["Fundamentos da computação", "Sistemas e funcionamento", "Redes, segurança e código", "Programação e algoritmos", "Inteligência artificial", "Dados e arquitetura de sistemas"],
+  "historia-geopolitica": ["Tempo e fontes históricas", "Estados e sociedades", "Transformações do mundo", "Brasil e geoeconomia", "Conflitos e ordem mundial", "Brasil republicano e cidadania"],
+  "filosofia-pensamento": ["Fundamentos e argumentos", "Conhecimento e ética", "Pensamento político", "Epistemologia e filosofia política", "Ética aplicada e falácias", "Epistemologia e evidências"],
+  "ciencias-matematica": ["Linguagem matemática", "Modelos e investigação", "Física e estatística", "Dados e método científico", "Energia e aplicações", "Funções e modelagem matemática"]
+};
 
 const schedule = [
   { day: "SEG", subject: "Economia e finanças", lesson: "Escassez e custo de oportunidade", time: "40 min", courseId: "economia-financas", lessonId: "eco-01" },
@@ -42,7 +74,7 @@ const schedule = [
   { day: "SÁB", subject: "Ciências e matemática", lesson: "Proporções e porcentagens", time: "45 min", courseId: "ciencias-matematica", lessonId: "cie-01" }
 ];
 
-type NavKey = "Visão geral" | "Academia" | "Biblioteca" | "Laboratório" | "Tutor IA";
+type NavKey = "Visão geral" | "Academia" | "Plano de estudos" | "Biblioteca" | "Laboratório" | "Desafios" | "Tutor IA";
 
 export default function AtlasDashboard() {
   const [active, setActive] = useState<NavKey>("Visão geral");
@@ -66,7 +98,7 @@ export default function AtlasDashboard() {
   const selectedCourse = allCourses.find(course => course.id === selectedCourseId) ?? allCourses[0];
   const selectedLesson = allCourses.flatMap(course => course.lessons).find(lesson => lesson.id === selectedLessonId) ?? null;
   const selectedLessonIndex = selectedCourse.lessons.findIndex(lesson => lesson.id === selectedLessonId);
-  const relatedResources = selectedLesson ? learningResources.filter(resource => resource.lessonIds?.includes(selectedLesson.id) || resource.department === selectedCourse.department).slice(0, 4) : [];
+  const relatedResources = selectedLesson ? learningResources.filter(resource => resource.lessonIds?.includes(selectedLesson.id) || resource.department === selectedCourse.department).sort((a,b) => Number(b.lessonIds?.includes(selectedLesson.id) ?? false) - Number(a.lessonIds?.includes(selectedLesson.id) ?? false) || Number(b.kind === "Vídeo") - Number(a.kind === "Vídeo")).slice(0, 4) : [];
 
   useEffect(() => {
     let cancelled = false;
@@ -208,12 +240,14 @@ export default function AtlasDashboard() {
     setAuthMessage(error ? error.message : "Acesso realizado com sucesso.");
   }
 
-  const nav: { label: NavKey; icon: typeof Compass }[] = [
-    { label: "Visão geral", icon: Compass },
-    { label: "Academia", icon: GraduationCap },
-    { label: "Biblioteca", icon: Library },
-    { label: "Laboratório", icon: Brain },
-    { label: "Tutor IA", icon: MessageSquareText }
+  const nav: { label: NavKey; icon: typeof Compass; group: string }[] = [
+    { label: "Visão geral", icon: Compass, group: "ESPAÇO DE ESTUDO" },
+    { label: "Academia", icon: GraduationCap, group: "ESPAÇO DE ESTUDO" },
+    { label: "Plano de estudos", icon: CalendarDays, group: "ESPAÇO DE ESTUDO" },
+    { label: "Biblioteca", icon: Library, group: "CONHECIMENTO" },
+    { label: "Laboratório", icon: Brain, group: "CONHECIMENTO" },
+    { label: "Desafios", icon: Sparkles, group: "CONHECIMENTO" },
+    { label: "Tutor IA", icon: MessageSquareText, group: "CONHECIMENTO" }
   ];
 
   return (
@@ -225,12 +259,16 @@ export default function AtlasDashboard() {
           <button className="icon-button close-mobile" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X size={18}/></button>
         </div>
         <div className="workspace-label">AMBIENTE PESSOAL</div>
-        <nav className="main-nav">
-          {nav.map(item => {
+        <nav className="main-nav" aria-label="Navegação principal">
+          {nav.map((item, index) => {
             const Icon = item.icon;
-            return <button key={item.label} className={`nav-item ${active === item.label ? "active" : ""}`} onClick={() => { setActive(item.label); setMobileOpen(false); }}>
-              <Icon size={18}/><span>{item.label}</span>{active === item.label && <span className="nav-indicator"/>}
-            </button>;
+            const showGroup = index === 0 || nav[index - 1].group !== item.group;
+            return <div key={item.label} className="nav-entry">
+              {showGroup && <div className="nav-group-label">{item.group}</div>}
+              <button key={item.label} className={`nav-item ${active === item.label ? "active" : ""}`} aria-current={active === item.label ? "page" : undefined} onClick={() => { setActive(item.label); setMobileOpen(false); }}>
+                <Icon size={18}/><span>{item.label}</span>{active === item.label && <span className="nav-indicator"/>}
+              </button>
+            </div>;
           })}
         </nav>
         <div className="sidebar-bottom">
@@ -251,16 +289,32 @@ export default function AtlasDashboard() {
       <section className="main-area">
         <header className="topbar">
           <button className="icon-button menu-mobile" onClick={() => setMobileOpen(true)} aria-label="Abrir menu"><Menu size={20}/></button>
-          <div className="breadcrumb">ATLAS <span>/</span> {active.toUpperCase()}</div>
-          <div className="topbar-right"><span className="status-dot"/> <span>AMBIENTE DE ESTUDO</span><div className="top-avatar">A</div></div>
+          <div className="breadcrumb"><span className="breadcrumb-root">ATLAS</span><span>/</span>{active.toUpperCase()}</div>
+          <div className="topbar-right">
+            <button className="topbar-search" onClick={() => { setActive("Academia"); setSelectedCourseId(null); setSelectedLessonId(null); }}><Search size={15}/><span>Explorar conteúdos</span></button>
+            <span className="status-dot" aria-hidden="true"/> <span className="environment-label">AMBIENTE PESSOAL</span><button className="top-avatar" onClick={() => setShowAuth(v => !v)} aria-label="Abrir conta">A</button>
+          </div>
         </header>
 
         <div className="content">
           <div className="content-stage" key={`${active}-${selectedCourseId}-${selectedLessonId ?? "course-index"}`}>
           {active === "Visão geral" && <>
             <section className="welcome-row">
-              <div><div className="eyebrow">SUA JORNADA DE APRENDIZAGEM</div><h1>Conhecimento se constrói.<br/><em>Um dia de cada vez.</em></h1><p>Um espaço para estudar com intenção, conectar ideias e desenvolver autonomia intelectual.</p></div>
-              <div className="welcome-stamp"><span>EST.</span><strong>2026</strong><small>LEARN · THINK · APPLY</small></div>
+              <div className="welcome-copy"><div className="eyebrow"><span className="eyebrow-pulse"/> SUA JORNADA DE APRENDIZAGEM</div><h1>Amplie sua visão.<br/><em>Domine o conhecimento.</em></h1><p>Uma academia pessoal para compreender ideias, conectar disciplinas e transformar conhecimento em capacidade real.</p><div className="welcome-actions"><button className="button button-dark" onClick={() => {setActive("Academia");setSelectedCourseId(null);setSelectedLessonId(null);}}>Explorar a academia <ArrowRight size={16}/></button><button className="button button-outline" onClick={() => setActive("Laboratório")}><Brain size={16}/> Revisar conhecimentos</button><button className="button button-outline" onClick={() => setActive("Desafios")}><Sparkles size={16}/> Jogar e praticar</button></div></div>
+              <div className="atlas-blueprint-visual" aria-hidden="true">
+                <div className="blueprint-topline"><span>ATLAS / KNOWLEDGE SYSTEM</span><span>FIG. 001</span></div>
+                <svg viewBox="0 0 380 245" role="presentation">
+                  <defs><linearGradient id="atlasBlock" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#8db8ff"/><stop offset="1" stopColor="#6c69dc"/></linearGradient><linearGradient id="atlasCore" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff"/><stop offset="1" stopColor="#dce8ff"/></linearGradient></defs>
+                  <g fill="none" stroke="#a9c1ed" strokeWidth="1.4" opacity=".85"><path d="M190 112 L75 48 L300 48 L190 112 L75 185 L300 185 Z"/><path d="M75 48 L75 185 M300 48 L300 185 M75 48 L190 112 L300 48 M75 185 L190 112 L300 185" strokeDasharray="4 5"/><path d="M190 112 L190 18 M190 112 L190 220" opacity=".65"/></g>
+                  <g fill="#eef4ff" stroke="#9ab4e8" strokeWidth="1.5"><path d="M75 27 l22 13 v26 l-22 13 -22 -13 V40z"/><path d="M300 27 l22 13 v26 l-22 13 -22 -13 V40z"/><path d="M75 164 l22 13 v26 l-22 13 -22 -13 V177z"/><path d="M300 164 l22 13 v26 l-22 13 -22 -13 V177z"/></g>
+                  <path d="M190 69 l47 27 v54 l-47 27 -47 -27 V96z" fill="url(#atlasBlock)" stroke="#dbe7ff" strokeWidth="2"/>
+                  <path d="M190 82 l34 20 v39 l-34 20 -34 -20 v-39z" fill="url(#atlasCore)" opacity=".96"/>
+                  <path d="M166 110 q12 -9 24 0 q12 -9 24 0 v24 q-12 -8 -24 1 q-12 -9 -24 -1z" fill="none" stroke="#5474bd" strokeWidth="2"/><path d="M190 110 v25" stroke="#5474bd" strokeWidth="1.5"/>
+                  <g fill="#4b76c9"><circle cx="75" cy="53" r="4"/><circle cx="300" cy="53" r="4"/><circle cx="75" cy="190" r="4"/><circle cx="300" cy="190" r="4"/></g>
+                  <g fill="#9db3d8" fontSize="8" fontFamily="Arial" letterSpacing="1.5"><text x="16" y="18">01 / LAW</text><text x="274" y="18">02 / ECON</text><text x="10" y="226">03 / TECH</text><text x="266" y="226">04 / HISTORY</text></g>
+                </svg>
+                <div className="blueprint-bottomline"><span>06 DOMAINS</span><i/><span>LEARN · THINK · APPLY</span></div>
+              </div>
             </section>
 
             <section className="daily-card">
@@ -275,15 +329,14 @@ export default function AtlasDashboard() {
             </section>
 
             <section className="section-block">
-              <div className="section-heading"><div><div className="eyebrow">CURRÍCULO INTERDISCIPLINAR</div><h2>Campos do conhecimento</h2></div><button className="text-button" onClick={() => setActive("Academia")}>Ver academia <ArrowRight size={15}/></button></div>
-              <div className="subject-grid">{subjects.map(s => {const Icon=s.icon; return <button className="subject-card" key={s.id} onClick={() => { openCourse(s.id); setActive("Academia"); }}><div className={`subject-icon ${s.id}`}><Icon size={20}/></div><span className="subject-tag">{s.tag}</span><h3>{s.title}</h3><p>{s.desc}</p><span className="card-arrow"><ArrowRight size={16}/></span></button>;})}</div>
+              <KnowledgeMap subjects={subjects} onSelect={(id) => { openCourse(id); setActive("Academia"); }}/>
             </section>
 
             <section className="section-block lower-grid">
               <div className="schedule-panel"><div className="section-heading compact"><div><div className="eyebrow">PLANEJAMENTO</div><h2>Ritmo da semana</h2></div><span className="small-count">{completedScheduleCount} DE {schedule.length}</span></div>
                 <div className="schedule-list">{schedule.map(item => <button key={item.day} className={`schedule-row ${completedLessons.includes(item.lessonId) ? "is-done" : ""}`} onClick={() => { setActive("Academia"); openCourse(item.courseId); openLesson(item.lessonId); }}><span className="day-chip">{item.day}</span><span className="schedule-info"><strong>{item.lesson}</strong><small>{item.subject}</small></span><span className="schedule-time">{item.time}</span><span className="check-circle">{completedLessons.includes(item.lessonId) && <Check size={13}/>}</span></button>)}</div>
               </div>
-              <div className="principle-panel"><div className="principle-icon"><Sparkles size={20}/></div><div className="eyebrow">PRINCÍPIO ATLAS</div><h2>Aprender não é acumular informações.</h2><p>É construir modelos mentais, testar ideias e saber usar o que você aprendeu em situações novas.</p><span>01 — COMPREENDER ANTES DE MEMORIZAR</span></div>
+              <div className="principle-panel"><div className="principle-icon"><Sparkles size={20}/></div><div className="eyebrow">PRINCÍPIO ATLAS</div><h2>Aprender é transformar informação em capacidade.</h2><p>Compreenda, questione, aplique e transfira o que sabe para situações que ainda não enfrentou.</p><button className="principle-link" onClick={() => setActive("Laboratório")}>Conheça o laboratório <ArrowRight size={14}/></button><span>01 — COMPREENDER ANTES DE MEMORIZAR</span></div>
             </section>
           </>}
 
@@ -313,7 +366,7 @@ export default function AtlasDashboard() {
               <h1>{selectedCourse.title}</h1><p className="page-intro">{selectedCourse.subtitle}</p>
               <div className="course-feature"><div><div className="eyebrow light">CURSO · {selectedCourse.level.toUpperCase()}</div><h2>{selectedCourse.title}</h2><p>{selectedCourse.description}</p><div className="course-feature-meta"><span><BookOpen size={14}/>{selectedCourse.workload}</span><span><GraduationCap size={14}/>{selectedCourse.level}</span></div></div><div className="course-feature-mark">A.</div></div>
               <div className="course-progress"><div><strong>Seu percurso</strong><span>{selectedCourse.lessons.filter(lesson=>completedLessons.includes(lesson.id)).length} de {selectedCourse.lessons.length} aulas concluídas</span></div><div className="progress-track"><span style={{width:`${selectedCourse.lessons.filter(lesson=>completedLessons.includes(lesson.id)).length/selectedCourse.lessons.length*100}%`}}/></div></div>
-              <div className="course-layout"><div className="course-main"><div className="section-heading"><div><div className="eyebrow">PROGRAMA DO CURSO</div><h2>Sequência de aprendizagem</h2></div><span className="small-count">{selectedCourse.lessons.length} AULAS</span></div><div className="lesson-list">{selectedCourse.lessons.map((lesson,index)=><div key={lesson.id}>{index%3===0&&<div className="course-module-label"><span>MÓDULO {Math.floor(index/3)+1}</span><strong>{courseModuleLabels[Math.min(Math.floor(index/3),courseModuleLabels.length-1)]}</strong></div>}<button className="lesson-list-item" onClick={()=>openLesson(lesson.id)}><span className={`lesson-number ${completedLessons.includes(lesson.id)?"done":""}`}>{completedLessons.includes(lesson.id)?<Check size={14}/>:String(index+1).padStart(2,"0")}</span><span className="lesson-list-copy"><strong>{lesson.title}</strong><small>{lesson.objective}</small></span><span className="lesson-duration">{lesson.duration} min</span><ArrowRight size={16}/></button></div>)}</div></div><aside className="course-aside"><div className="eyebrow">RESULTADOS DE APRENDIZAGEM</div><h3>Ao concluir, você deverá conseguir:</h3><ul>{selectedCourse.outcomes.map(outcome=><li key={outcome}>{outcome}</li>)}</ul><div className="course-aside-stat"><strong>{selectedCourse.lessons.length}</strong><span>aulas estruturadas</span></div><div className="course-aside-stat"><strong>1</strong><span>questão comentada por aula</span></div></aside></div>
+              <div className="course-layout"><div className="course-main"><div className="section-heading"><div><div className="eyebrow">PROGRAMA DO CURSO</div><h2>Sequência de aprendizagem</h2></div><span className="small-count">{selectedCourse.lessons.length} AULAS</span></div><div className="lesson-list">{selectedCourse.lessons.map((lesson,index)=><div key={lesson.id}>{index%3===0&&<div className="course-module-label"><span>MÓDULO {Math.floor(index/3)+1}</span><strong>{(courseModuleLabels[selectedCourse.id] ?? courseModuleLabels.direito)[Math.min(Math.floor(index/3),(courseModuleLabels[selectedCourse.id] ?? courseModuleLabels.direito).length-1)]}</strong></div>}<button className="lesson-list-item" onClick={()=>openLesson(lesson.id)}><span className={`lesson-number ${completedLessons.includes(lesson.id)?"done":""}`}>{completedLessons.includes(lesson.id)?<Check size={14}/>:String(index+1).padStart(2,"0")}</span><span className="lesson-list-copy"><strong>{lesson.title}</strong><small>{lesson.objective}</small></span><span className="lesson-duration">{lesson.duration} min</span><ArrowRight size={16}/></button></div>)}</div></div><aside className="course-aside"><div className="eyebrow">RESULTADOS DE APRENDIZAGEM</div><h3>Ao concluir, você deverá conseguir:</h3><ul>{selectedCourse.outcomes.map(outcome=><li key={outcome}>{outcome}</li>)}</ul><div className="course-aside-stat"><strong>{selectedCourse.lessons.length}</strong><span>aulas estruturadas</span></div><div className="course-aside-stat"><strong>1</strong><span>questão comentada por aula</span></div></aside></div>
               <CourseAssessment courseId={selectedCourse.id} lessons={selectedCourse.lessons} completedCount={selectedCourse.lessons.filter(lesson=>completedLessons.includes(lesson.id)).length}/>
             </> : <>
               <div className="eyebrow">CURRÍCULO E FORMAÇÃO</div><h1>Academia</h1><p className="page-intro">Seis departamentos, cursos progressivos e aprendizagem conectada. Escolha uma área para abrir sua trilha de estudos.</p>
@@ -327,9 +380,18 @@ export default function AtlasDashboard() {
             {!selectedLesson && !selectedCourseId && <div className="section-block course-catalog-note"><div className="eyebrow">ESTRUTURA ACADÊMICA</div><h2>Aprender com profundidade e conexão</h2><p className="page-intro">Cada aula combina explicação teórica, conceitos essenciais, estudo de caso, questão comentada, reflexão e referências. A Biblioteca reúne fontes por departamento e o Laboratório oferece revisão espaçada e desafios aplicados.</p></div>}
           </section>}
 
+          {active === "Plano de estudos" && <section className="page-section plan-page">
+            <div className="eyebrow">ORGANIZAÇÃO E CONSISTÊNCIA</div><h1>Plano de estudos</h1><p className="page-intro">Uma sugestão de ritmo semanal para manter contato com as seis áreas. Você pode abrir qualquer sessão diretamente por aqui.</p>
+            <div className="plan-summary-grid"><div><span>SESSÕES SEMANAIS</span><strong>{schedule.length}</strong><small>Uma por departamento</small></div><div><span>SESSÕES CONCLUÍDAS</span><strong>{completedScheduleCount}/{schedule.length}</strong><small>Com base nas aulas concluídas</small></div><div><span>TEMPO PLANEJADO</span><strong>4h 15m</strong><small>Estimativa semanal</small></div></div>
+            <div className="plan-board"><div className="section-heading"><div><div className="eyebrow">SUA SEMANA</div><h2>Ritmo sugerido</h2></div><span className="small-count">SEGUNDA A SÁBADO</span></div>{schedule.map((item,index)=><button key={item.day} className={`plan-session ${completedLessons.includes(item.lessonId)?"is-done":""}`} onClick={()=>{setActive("Academia");openCourse(item.courseId);openLesson(item.lessonId);}}><span className="plan-day">{item.day}<small>{index+1}</small></span><span className="plan-session-copy"><strong>{item.lesson}</strong><small>{item.subject}</small></span><span className="plan-time"><Clock3 size={14}/>{item.time}</span><span className="plan-open">{completedLessons.includes(item.lessonId)?<Check size={16}/>:<ArrowRight size={16}/>}</span></button>)}</div>
+            <div className="plan-tip"><Sparkles size={18}/><div><strong>Uma rotina sustentável vale mais que uma maratona.</strong><p>Use os tempos como referência. Se perder um dia, retome pela próxima sessão sem tentar compensar tudo de uma vez.</p></div></div>
+          </section>}
+
           {active === "Biblioteca" && <ResourceLibrary/>}
 
           {active === "Laboratório" && <LearningLab/>}
+
+          {active === "Desafios" && <LearningArcade/>}
 
           {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O tutor deve explicar fundamentos, comparar perspectivas, propor exemplos e ajudar você a testar o próprio entendimento.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">ATLAS AI</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><label className="tutor-area-label">Área de aprofundamento<select value={tutorArea} onChange={event=>setTutorArea(event.target.value)}><option>Interdisciplinar</option><option>Direito e instituições</option><option>Economia e Finanças</option><option>Tecnologia e Inteligência Artificial</option><option>História e Geopolítica</option><option>Filosofia e Pensamento Crítico</option><option>Ciências e Matemática</option></select></label><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Confira informações importantes em fontes confiáveis.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
           </div>
