@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { BookOpen, ExternalLink, FileText, FileDown, PlayCircle, Search, Scale, Filter, Bookmark, BookmarkCheck } from "lucide-react";
 import { learningResources, type ResourceKind } from "@/lib/resources";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { loadStudentRecords, loadStudentRecordsForUser, saveStudentRecord, saveStudentRecordForUser, subscribeToStudentAuth } from "@/lib/student-records";
 
 const filters = ["Todos", "PDF", "Legislação", "Artigo", "Vídeo", "Curso", "Livro"] as const;
 const departments = ["Todos", "Direito e instituições", "Economia e Finanças", "Tecnologia e Inteligência Artificial", "História e Geopolítica", "Filosofia e Pensamento Crítico", "Ciências e Matemática", "Minha biblioteca"] as const;
@@ -36,11 +37,32 @@ export default function ResourceLibrary() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("atlas-library-bookmarks-v1");
-      if (saved) setSavedIds(JSON.parse(saved));
-    } catch { /* armazenamento local indisponível */ }
+    let cancelled = false;
+    async function hydrateBookmarks() {
+      let local: string[] = [];
+      try {
+        const saved = window.localStorage.getItem("atlas-library-bookmarks-v1");
+        if (saved) local = JSON.parse(saved);
+      } catch { /* armazenamento local indisponível */ }
+      const cloud = await loadStudentRecords<{ saved: boolean }>("library_bookmark");
+      const merged = [...new Set([...Object.entries(cloud).filter(([, value]) => value.saved).map(([id]) => id), ...local])];
+      if (!cancelled) setSavedIds(merged);
+      for (const id of local) void saveStudentRecord("library_bookmark", id, { saved: true, updatedAt: new Date().toISOString() });
+    }
+    void hydrateBookmarks();
+    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => subscribeToStudentAuth(userId => {
+    let local: string[] = [];
+    try { local = JSON.parse(window.localStorage.getItem("atlas-library-bookmarks-v1") || "[]"); }
+    catch { /* armazenamento local indisponível */ }
+    void loadStudentRecordsForUser<{ saved: boolean }>("library_bookmark", userId).then(cloud => {
+      const merged = [...new Set([...Object.entries(cloud).filter(([, value]) => value.saved).map(([id]) => id), ...local])];
+      setSavedIds(merged);
+      for (const id of local) void saveStudentRecordForUser("library_bookmark", id, { saved: true, updatedAt: new Date().toISOString() }, userId);
+    });
+  }), []);
 
   useEffect(() => {
     try { window.localStorage.setItem("atlas-library-bookmarks-v1", JSON.stringify(savedIds)); }
@@ -48,7 +70,9 @@ export default function ResourceLibrary() {
   }, [savedIds]);
 
   function toggleSaved(id: string) {
-    setSavedIds(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
+    const nextSaved = !savedIds.includes(id);
+    setSavedIds(current => nextSaved ? [...current, id] : current.filter(item => item !== id));
+    void saveStudentRecord("library_bookmark", id, { saved: nextSaved, updatedAt: new Date().toISOString() });
   }
 
   useEffect(() => {
@@ -109,7 +133,7 @@ export default function ResourceLibrary() {
     return matchesFilter && matchesDepartment && (!showSaved || savedIds.includes(resource.id)) && haystack.includes(query.toLocaleLowerCase("pt-BR"));
   }), [filter, department, query, allResources, showSaved, savedIds]);
   const orderedResources = useMemo(() => {
-    const order = departments.slice(1, 7);
+    const order: string[] = departments.slice(1, 7);
     return [...resources].sort((a,b) => order.indexOf(a.department || "") - order.indexOf(b.department || "") || a.title.localeCompare(b.title, "pt-BR"));
   }, [resources]);
   const groupedResources = useMemo(() => departments.slice(1).map(name => ({ name, items: orderedResources.filter(item => item.department === name) })).filter(group => group.items.length > 0), [orderedResources]);

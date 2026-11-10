@@ -20,6 +20,7 @@ import LearningLab from "@/components/LearningLab";
 import KnowledgeMap from "@/components/KnowledgeMap";
 import LearningArcade from "@/components/LearningArcade";
 import { advancedLessons } from "@/lib/advanced-learning";
+import { capstoneLessons } from "@/lib/capstone-lessons";
 
 const subjects = [
   { id: "direito", title: "Direito e instituições", desc: "Normas, direitos, Estado e pensamento jurídico.", icon: Scale, tag: "Instituições" },
@@ -44,18 +45,24 @@ const extensionByCourse: Record<string, string[]> = {
   "ciencias-matematica": ["cie-10", "cie-11", "cie-12"]
 };
 const advancedByCourse: Record<string, string[]> = {
-  direito: ["direito-14", "direito-15", "direito-16", "direito-17", "direito-18"],
-  "economia-financas": ["eco-13", "eco-14", "eco-16", "eco-17", "eco-18"],
-  "tecnologia-ia": ["tec-13", "tec-14", "tec-16", "tec-17", "tec-18"],
-  "historia-geopolitica": ["his-13", "his-14", "his-16", "his-17", "his-18"],
-  "filosofia-pensamento": ["fil-13", "fil-14", "fil-16", "fil-17", "fil-18"],
-  "ciencias-matematica": ["cie-13", "cie-14", "cie-16", "cie-17", "cie-18"]
+  direito: ["direito-14", "direito-15", "direito-16", "direito-17", "direito-18", "direito-19", "direito-20"],
+  "economia-financas": ["eco-13", "eco-14", "eco-16", "eco-17", "eco-18", "eco-19", "eco-20"],
+  "tecnologia-ia": ["tec-13", "tec-14", "tec-16", "tec-17", "tec-18", "tec-19", "tec-20"],
+  "historia-geopolitica": ["his-13", "his-14", "his-16", "his-17", "his-18", "his-19", "his-20"],
+  "filosofia-pensamento": ["fil-13", "fil-14", "fil-16", "fil-17", "fil-18", "fil-19", "fil-20"],
+  "ciencias-matematica": ["cie-13", "cie-14", "cie-16", "cie-17", "cie-18", "cie-19", "cie-20"]
 };
 for (const course of allCourses) {
   const extraIds = extensionByCourse[course.id] ?? [];
-  course.lessons = [...course.lessons, ...atlasExtensionLessons.filter(lesson => extraIds.includes(lesson.id)), ...advancedLessons.filter(lesson => (advancedByCourse[course.id] ?? []).includes(lesson.id))];
+  course.lessons = [...course.lessons, ...atlasExtensionLessons.filter(lesson => extraIds.includes(lesson.id)), ...advancedLessons.filter(lesson => (advancedByCourse[course.id] ?? []).includes(lesson.id)), ...capstoneLessons.filter(lesson => (advancedByCourse[course.id] ?? []).includes(lesson.id))];
   course.workload = `${course.lessons.length} aulas · trilha organizada por módulos`;
 }
+function lessonLevel(courseId: string, lessonId: string): "Iniciante" | "Intermediário" | "Avançado" {
+  if ((advancedByCourse[courseId] ?? []).includes(lessonId)) return "Avançado";
+  if ((extensionByCourse[courseId] ?? []).includes(lessonId)) return "Intermediário";
+  return "Iniciante";
+}
+
 const courseModuleLabels: Record<string, string[]> = {
   direito: ["Fundamentos do Direito", "Estado e Constituição", "Ramos e instituições", "Direitos e relações jurídicas", "Responsabilidade e prática", "Consumo e relações jurídicas"],
   "economia-financas": ["Fundamentos econômicos", "Mercados e instituições", "Finanças pessoais", "Indicadores e sistema financeiro", "Juros, risco e investimentos", "Orçamento e decisões financeiras"],
@@ -88,8 +95,12 @@ export default function AtlasDashboard() {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authName, setAuthName] = useState("");
-  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [authNewPassword, setAuthNewPassword] = useState("");
+  const [authMode, setAuthMode] = useState<"login" | "signup" | "reset" | "update">("login");
   const [authMessage, setAuthMessage] = useState("");
+  const [studentEmail, setStudentEmail] = useState<string | null>(null);
+  const [studentName, setStudentName] = useState<string | null>(null);
+  const [courseLevel, setCourseLevel] = useState<"Todos" | "Iniciante" | "Intermediário" | "Avançado">("Todos");
   const [showAuth, setShowAuth] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
@@ -98,9 +109,31 @@ export default function AtlasDashboard() {
   const [quizChoice, setQuizChoice] = useState<number | null>(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const selectedCourse = allCourses.find(course => course.id === selectedCourseId) ?? allCourses[0];
+  const visibleCourseLessons = selectedCourse.lessons.filter(lesson => courseLevel === "Todos" || lessonLevel(selectedCourse.id, lesson.id) === courseLevel);
+  const courseLevelCounts = { Iniciante: selectedCourse.lessons.filter(lesson => lessonLevel(selectedCourse.id, lesson.id) === "Iniciante").length, Intermediário: selectedCourse.lessons.filter(lesson => lessonLevel(selectedCourse.id, lesson.id) === "Intermediário").length, Avançado: selectedCourse.lessons.filter(lesson => lessonLevel(selectedCourse.id, lesson.id) === "Avançado").length };
   const selectedLesson = allCourses.flatMap(course => course.lessons).find(lesson => lesson.id === selectedLessonId) ?? null;
   const selectedLessonIndex = selectedCourse.lessons.findIndex(lesson => lesson.id === selectedLessonId);
   const relatedResources = selectedLesson ? learningResources.filter(resource => resource.lessonIds?.includes(selectedLesson.id) || resource.department === selectedCourse.department).sort((a,b) => Number(b.lessonIds?.includes(selectedLesson.id) ?? false) - Number(a.lessonIds?.includes(selectedLesson.id) ?? false) || Number(b.kind === "Vídeo") - Number(a.kind === "Vídeo")).slice(0, 4) : [];
+
+  useEffect(() => {
+    const isRecovery = new URLSearchParams(window.location.search).get("recovery") === "1";
+    if (isRecovery) { setShowAuth(true); setAuthMode("update"); setAuthMessage("Defina uma nova senha para sua conta ATLAS."); }
+    if (!supabase) return;
+    void supabase.auth.getUser().then(({ data }) => {
+      setStudentEmail(data.user?.email ?? null);
+      setStudentName((data.user?.user_metadata?.full_name as string | undefined) ?? null);
+    });
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      setStudentEmail(session?.user?.email ?? null);
+      setStudentName((session?.user?.user_metadata?.full_name as string | undefined) ?? null);
+      if (event === "PASSWORD_RECOVERY") {
+        setShowAuth(true);
+        setAuthMode("update");
+        setAuthMessage("Defina uma nova senha para sua conta ATLAS.");
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -148,6 +181,7 @@ export default function AtlasDashboard() {
   }, [completedLessons, progressLoaded]);
 
   function openCourse(id: string) {
+    setCourseLevel("Todos");
     setSelectedCourseId(id);
     setSelectedLessonId(null);
     setQuizChoice(null);
@@ -201,6 +235,7 @@ export default function AtlasDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           question,
+          department: tutorArea,
           context: `Estudante iniciante em formação interdisciplinar. Área prioritária: ${tutorArea}. Explique progressivamente, conecte conceitos a exemplos concretos e indique quando um tema exigir conhecimento prévio.`
         })
       });
@@ -219,19 +254,30 @@ export default function AtlasDashboard() {
       setAuthMessage("O acesso com conta exige configurar NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY. O modo de demonstração continua disponível.");
       return;
     }
+    if (authMode === "reset") {
+      const { error } = await supabase.auth.resetPasswordForEmail(authEmail, { redirectTo: `${window.location.origin}/?recovery=1` });
+      setAuthMessage(error ? error.message : "Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha. Confira também a caixa de spam.");
+      return;
+    }
+    if (authMode === "update") {
+      if (authNewPassword.length < 8) { setAuthMessage("A nova senha precisa ter pelo menos 8 caracteres."); return; }
+      const { error } = await supabase.auth.updateUser({ password: authNewPassword });
+      if (error) { setAuthMessage(error.message); return; }
+      setAuthPassword(""); setAuthNewPassword(""); setAuthMode("login");
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setAuthMessage("Senha atualizada. Entre com sua nova senha.");
+      return;
+    }
     if (authMode === "signup") {
       if (authPassword.length < 8) { setAuthMessage("Use uma senha com pelo menos 8 caracteres."); return; }
       const { data, error } = await supabase.auth.signUp({
-        email: authEmail, password: authPassword, options: { data: { full_name: authName.trim() }, emailRedirectTo: `${window.location.origin}/` }
+        email: authEmail, password: authPassword, options: { data: { full_name: authName.trim(), name: authName.trim() }, emailRedirectTo: `${window.location.origin}/` }
       });
       setAuthMessage(error ? error.message : data.session ? "Conta criada e acesso iniciado." : "Conta criada. Verifique seu e-mail para confirmar o cadastro antes de entrar.");
       if (!error && data.session) setAuthMode("login");
       return;
     }
-    const { error } = await supabase.auth.signInWithPassword({
-      email: authEmail,
-      password: authPassword
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
     if (!error) {
       const { data: auth } = await supabase.auth.getUser();
       if (auth.user) {
@@ -251,6 +297,14 @@ export default function AtlasDashboard() {
     }
     setAuthMessage(error ? error.message : "Acesso realizado com sucesso.");
   }
+
+  async function signOut() {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    setAuthMessage(error ? error.message : "Você saiu da sua conta.");
+    if (!error) { setStudentEmail(null); setStudentName(null); setAuthMode("login"); }
+  }
+
 
   const nav: { label: NavKey; icon: typeof Compass; group: string }[] = [
     { label: "Visão geral", icon: Compass, group: "ESPAÇO DE ESTUDO" },
@@ -286,17 +340,19 @@ export default function AtlasDashboard() {
         <div className="sidebar-bottom">
           <div className="sidebar-note"><Shield size={16}/><span>Seu espaço de aprendizagem, sob seu controle.</span></div>
           <button className="profile-button" onClick={() => setShowAuth(v => !v)}>
-            <div className="avatar">A</div><div><strong>Estudante</strong><span>{isSupabaseConfigured ? "Acessar conta" : "Modo de demonstração"}</span></div><ChevronDown size={15}/>
+            <div className="avatar">{(studentName || studentEmail || "A").slice(0,1).toUpperCase()}</div><div><strong>{studentName || studentEmail?.split("@")[0] || "Estudante"}</strong><span>{studentEmail ? "Conta conectada" : isSupabaseConfigured ? "Acessar conta" : "Modo de demonstração"}</span></div><ChevronDown size={15}/>
           </button>
-          {showAuth && <form className="auth-popover auth-popover-v2" onSubmit={signIn}>
-            <strong>{authMode === "login" ? "Acessar sua conta" : "Criar conta de estudante"}</strong>
-            <div className="auth-mode-tabs"><button type="button" className={authMode === "login" ? "active" : ""} onClick={() => {setAuthMode("login");setAuthMessage("");}}>Entrar</button><button type="button" className={authMode === "signup" ? "active" : ""} onClick={() => {setAuthMode("signup");setAuthMessage("");}}>Criar conta</button></div>
+          {showAuth && studentEmail && authMode !== "update" ? <div className="auth-popover auth-popover-v2 auth-account-card"><strong>Conta ATLAS conectada</strong><span>{studentName || "Estudante"}</span><small>{studentEmail}</small><button type="button" className="button button-dark" onClick={signOut}>Sair da conta</button>{authMessage && <small role="status">{authMessage}</small>}</div> : showAuth && <form className="auth-popover auth-popover-v2" onSubmit={signIn}>
+            <strong>{authMode === "login" ? "Acessar sua conta" : authMode === "signup" ? "Criar conta de estudante" : authMode === "reset" ? "Recuperar acesso" : "Definir nova senha"}</strong>
+            {(authMode === "login" || authMode === "signup") ? <div className="auth-mode-tabs"><button type="button" className={authMode === "login" ? "active" : ""} onClick={() => {setAuthMode("login");setAuthMessage("");}}>Entrar</button><button type="button" className={authMode === "signup" ? "active" : ""} onClick={() => {setAuthMode("signup");setAuthMessage("");}}>Criar conta</button></div> : <button type="button" className="auth-back-link" onClick={() => {setAuthMode("login");setAuthMessage("");}}>← Voltar para entrar</button>}
             {authMode === "signup" && <input type="text" placeholder="Nome de estudante" value={authName} onChange={e => setAuthName(e.target.value)} autoComplete="name" required/>}
-            <input type="email" placeholder="E-mail" value={authEmail} onChange={e => setAuthEmail(e.target.value)} autoComplete="email" required/>
-            <input type="password" placeholder={authMode === "signup" ? "Senha (mínimo 8 caracteres)" : "Senha"} value={authPassword} onChange={e => setAuthPassword(e.target.value)} autoComplete={authMode === "signup" ? "new-password" : "current-password"} minLength={authMode === "signup" ? 8 : 1} required/>
-            <button className="button button-dark" type="submit">{authMode === "login" ? "Entrar" : "Criar minha conta"}</button>
+            {authMode !== "update" && <input type="email" placeholder="E-mail" value={authEmail} onChange={e => setAuthEmail(e.target.value)} autoComplete="email" required/>}
+            {(authMode === "login" || authMode === "signup") && <input type="password" placeholder={authMode === "signup" ? "Senha (mínimo 8 caracteres)" : "Senha"} value={authPassword} onChange={e => setAuthPassword(e.target.value)} autoComplete={authMode === "signup" ? "new-password" : "current-password"} minLength={authMode === "signup" ? 8 : 1} required/>}
+            {authMode === "update" && <input type="password" placeholder="Nova senha (mínimo 8 caracteres)" value={authNewPassword} onChange={e => setAuthNewPassword(e.target.value)} autoComplete="new-password" minLength={8} required/>}
+            {authMode === "login" && <button type="button" className="auth-back-link" onClick={() => {setAuthMode("reset");setAuthMessage("Informe seu e-mail para receber o link de recuperação.");}}>Esqueci minha senha</button>}
+            <button className="button button-dark" type="submit">{authMode === "login" ? "Entrar" : authMode === "signup" ? "Criar minha conta" : authMode === "reset" ? "Enviar link de recuperação" : "Salvar nova senha"}</button>
             {authMessage && <small role="status">{authMessage}</small>}
-            {!isSupabaseConfigured && <small>O cadastro ficará ativo quando o projeto Supabase estiver configurado no ambiente da aplicação.</small>}
+            {!isSupabaseConfigured && <small>O cadastro e a recuperação de senha ficam ativos quando o Supabase estiver configurado no ambiente da aplicação.</small>}
           </form>}
         </div>
       </aside>
@@ -307,7 +363,7 @@ export default function AtlasDashboard() {
           <div className="breadcrumb"><span className="breadcrumb-root">ATLAS</span><span>/</span>{active.toUpperCase()}</div>
           <div className="topbar-right">
             <button className="topbar-search" onClick={() => { setActive("Academia"); setSelectedCourseId(null); setSelectedLessonId(null); }}><Search size={15}/><span>Explorar conteúdos</span></button>
-            <span className="status-dot" aria-hidden="true"/> <span className="environment-label">AMBIENTE PESSOAL</span><button className="top-avatar" onClick={() => setShowAuth(v => !v)} aria-label="Abrir conta">A</button>
+            <span className="status-dot" aria-hidden="true"/> <span className="environment-label">AMBIENTE PESSOAL</span><button className="top-avatar" onClick={() => setShowAuth(v => !v)} aria-label="Abrir conta">{(studentName || studentEmail || "A").slice(0,1).toUpperCase()}</button>
           </div>
         </header>
 
@@ -361,7 +417,7 @@ export default function AtlasDashboard() {
               <div className="eyebrow">{selectedCourse.department.toUpperCase()} · AULA {String(selectedLessonIndex + 1).padStart(2,"0")}</div>
               <h1>{selectedLesson.title}</h1>
               <p className="page-intro">{selectedLesson.objective}</p>
-              <div className="lesson-meta"><span><Clock3 size={14}/>{selectedLesson.duration} minutos</span><span><BookOpen size={14}/> Nível {selectedCourse.level.toLowerCase()}</span><span><GraduationCap size={14}/>{selectedCourse.title}</span></div>
+              <div className="lesson-meta"><span><Clock3 size={14}/>{selectedLesson.duration} minutos</span><span><BookOpen size={14}/> Nível {lessonLevel(selectedCourse.id, selectedLesson.id).toLowerCase()}</span><span><GraduationCap size={14}/>{selectedCourse.title}</span></div>
               <article className="lesson-paper">
                 <div className="lesson-callout"><strong>Antes de começar</strong><p>{selectedLesson.objective}</p></div>
                 {selectedLesson.sections.map((section,index)=><section className="lesson-content-section" key={section.heading}><h2>{section.heading}</h2>{section.paragraphs.map((paragraph,i)=><p key={i}>{paragraph}</p>)}{section.points && <ul>{section.points.map(point=><li key={point}>{point}</li>)}</ul>}</section>)}
@@ -377,11 +433,12 @@ export default function AtlasDashboard() {
               </article>
             </> : selectedCourseId ? <>
               <button className="text-button lesson-back" onClick={() => setSelectedCourseId(null)}><ArrowRight size={14} className="back-arrow"/> Todos os departamentos</button>
-              <div className="eyebrow">{selectedCourse.department.toUpperCase()} · TRILHA INTRODUTÓRIA</div>
+              <div className="eyebrow">{selectedCourse.department.toUpperCase()} · TRILHA PROGRESSIVA · 3 NÍVEIS</div>
               <h1>{selectedCourse.title}</h1><p className="page-intro">{selectedCourse.subtitle}</p>
-              <div className="course-feature"><div><div className="eyebrow light">CURSO · {selectedCourse.level.toUpperCase()}</div><h2>{selectedCourse.title}</h2><p>{selectedCourse.description}</p><div className="course-feature-meta"><span><BookOpen size={14}/>{selectedCourse.workload}</span><span><GraduationCap size={14}/>{selectedCourse.level}</span></div></div><div className="course-feature-mark">A.</div></div>
+              <div className="course-feature"><div><div className="eyebrow light">CURSO · {selectedCourse.level.toUpperCase()}</div><h2>{selectedCourse.title}</h2><p>{selectedCourse.description}</p><div className="course-feature-meta"><span><BookOpen size={14}/>{selectedCourse.workload}</span><span><GraduationCap size={14}/>Fundamentos → avançado</span></div></div><div className="course-feature-mark">A.</div></div>
               <div className="course-progress"><div><strong>Seu percurso</strong><span>{selectedCourse.lessons.filter(lesson=>completedLessons.includes(lesson.id)).length} de {selectedCourse.lessons.length} aulas concluídas</span></div><div className="progress-track"><span style={{width:`${selectedCourse.lessons.filter(lesson=>completedLessons.includes(lesson.id)).length/selectedCourse.lessons.length*100}%`}}/></div></div>
-              <div className="course-layout"><div className="course-main"><div className="section-heading"><div><div className="eyebrow">PROGRAMA DO CURSO</div><h2>Sequência de aprendizagem</h2></div><span className="small-count">{selectedCourse.lessons.length} AULAS</span></div><div className="lesson-list">{selectedCourse.lessons.map((lesson,index)=><div key={lesson.id}>{index%3===0&&<div className="course-module-label"><span>MÓDULO {Math.floor(index/3)+1}</span><strong>{(courseModuleLabels[selectedCourse.id] ?? courseModuleLabels.direito)[Math.min(Math.floor(index/3),(courseModuleLabels[selectedCourse.id] ?? courseModuleLabels.direito).length-1)]}</strong></div>}<button className="lesson-list-item" onClick={()=>openLesson(lesson.id)}><span className={`lesson-number ${completedLessons.includes(lesson.id)?"done":""}`}>{completedLessons.includes(lesson.id)?<Check size={14}/>:String(index+1).padStart(2,"0")}</span><span className="lesson-list-copy"><strong>{lesson.title}</strong><small>{lesson.objective}</small></span><span className="lesson-duration">{lesson.duration} min</span><ArrowRight size={16}/></button></div>)}</div></div><aside className="course-aside"><div className="eyebrow">RESULTADOS DE APRENDIZAGEM</div><h3>Ao concluir, você deverá conseguir:</h3><ul>{selectedCourse.outcomes.map(outcome=><li key={outcome}>{outcome}</li>)}</ul><div className="course-aside-stat"><strong>{selectedCourse.lessons.length}</strong><span>aulas estruturadas</span></div><div className="course-aside-stat"><strong>1</strong><span>questão comentada por aula</span></div></aside></div>
+              <div className="course-level-selector" role="group" aria-label="Filtrar aulas por nível"><button type="button" className={courseLevel === "Todos" ? "active" : ""} onClick={() => setCourseLevel("Todos")}>Trilha completa <small>{selectedCourse.lessons.length}</small></button><button type="button" className={courseLevel === "Iniciante" ? "active" : ""} onClick={() => setCourseLevel("Iniciante")}>Fundamentos <small>{courseLevelCounts.Iniciante}</small></button><button type="button" className={courseLevel === "Intermediário" ? "active" : ""} onClick={() => setCourseLevel("Intermediário")}>Intermediário <small>{courseLevelCounts.Intermediário}</small></button><button type="button" className={courseLevel === "Avançado" ? "active" : ""} onClick={() => setCourseLevel("Avançado")}>Avançado <small>{courseLevelCounts.Avançado}</small></button></div>
+              <div className="course-layout"><div className="course-main"><div className="section-heading"><div><div className="eyebrow">PROGRAMA DO CURSO · {courseLevel === "Todos" ? "TODOS OS NÍVEIS" : courseLevel.toUpperCase()}</div><h2>Sequência de aprendizagem</h2></div><span className="small-count">{visibleCourseLessons.length} AULAS</span></div><div className="lesson-list">{visibleCourseLessons.map((lesson,index)=><div key={lesson.id}>{index%3===0&&<div className="course-module-label"><span>MÓDULO {Math.floor(index/3)+1}</span><strong>{(courseModuleLabels[selectedCourse.id] ?? courseModuleLabels.direito)[Math.min(Math.floor(index/3),(courseModuleLabels[selectedCourse.id] ?? courseModuleLabels.direito).length-1)]}</strong></div>}<button className="lesson-list-item" onClick={()=>openLesson(lesson.id)}><span className={`lesson-number ${completedLessons.includes(lesson.id)?"done":""}`}>{completedLessons.includes(lesson.id)?<Check size={14}/>:String(index+1).padStart(2,"0")}</span><span className="lesson-list-copy"><strong>{lesson.title}</strong><small>{lesson.objective}</small></span><span className="lesson-duration">{lesson.duration} min</span><ArrowRight size={16}/></button></div>)}{visibleCourseLessons.length===0&&<p className="page-intro">Não há aulas cadastradas neste nível ainda.</p>}</div></div><aside className="course-aside"><div className="eyebrow">RESULTADOS DE APRENDIZAGEM</div><h3>Ao concluir, você deverá conseguir:</h3><ul>{selectedCourse.outcomes.map(outcome=><li key={outcome}>{outcome}</li>)}</ul><div className="course-aside-stat"><strong>{selectedCourse.lessons.length}</strong><span>aulas estruturadas</span></div><div className="course-aside-stat"><strong>1</strong><span>questão comentada por aula</span></div></aside></div>
               <CourseAssessment courseId={selectedCourse.id} lessons={selectedCourse.lessons} completedCount={selectedCourse.lessons.filter(lesson=>completedLessons.includes(lesson.id)).length}/>
             </> : <>
               <div className="eyebrow">CURRÍCULO E FORMAÇÃO</div><h1>Academia</h1><p className="page-intro">Seis departamentos, cursos progressivos e aprendizagem conectada. Escolha uma área para abrir sua trilha de estudos.</p>
@@ -389,7 +446,7 @@ export default function AtlasDashboard() {
               <div className="subject-grid academy-grid">{allCourses.filter(course => `${course.title} ${course.department} ${course.description}`.toLowerCase().includes(query.toLowerCase())).map(course=>{
                 const subject = subjects.find(item=>item.id===course.id) ?? subjects[0]; const Icon=subject.icon;
                 const done=course.lessons.filter(lesson=>completedLessons.includes(lesson.id)).length;
-                return <button className="subject-card academy-subject" key={course.id} onClick={()=>openCourse(course.id)}><div className={`subject-icon ${course.id}`}><Icon size={20}/></div><span className="subject-tag">{course.department}</span><h3>{course.title}</h3><p>{course.description}</p><div className="course-footer"><span>{course.lessons.length} aulas · {course.level}</span><span>{done}/{course.lessons.length} concluídas</span></div><span className="card-arrow"><ArrowRight size={16}/></span></button>;
+                return <button className="subject-card academy-subject" key={course.id} onClick={()=>openCourse(course.id)}><div className={`subject-icon ${course.id}`}><Icon size={20}/></div><span className="subject-tag">{course.department}</span><h3>{course.title}</h3><p>{course.description}</p><div className="course-footer"><span>{course.lessons.length} aulas · 3 níveis</span><span>{done}/{course.lessons.length} concluídas</span></div><span className="card-arrow"><ArrowRight size={16}/></span></button>;
               })}</div>
             </>}
             {!selectedLesson && !selectedCourseId && <div className="section-block course-catalog-note"><div className="eyebrow">ESTRUTURA ACADÊMICA</div><h2>Aprender com profundidade e conexão</h2><p className="page-intro">Cada aula combina explicação teórica, conceitos essenciais, estudo de caso, questão comentada, reflexão e referências. A Biblioteca reúne fontes por departamento e o Laboratório oferece revisão espaçada e desafios aplicados.</p></div>}
@@ -410,7 +467,7 @@ export default function AtlasDashboard() {
 
           {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O Tutor ATLAS funciona no modo gratuito local: usa uma base didática incorporada ao projeto, sem chave de API, cobrança ou créditos externos.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">GRATUITO · SEM API</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><label className="tutor-area-label">Área de aprofundamento<select value={tutorArea} onChange={event=>setTutorArea(event.target.value)}><option>Interdisciplinar</option><option>Direito e instituições</option><option>Economia e Finanças</option><option>Tecnologia e Inteligência Artificial</option><option>História e Geopolítica</option><option>Filosofia e Pensamento Crítico</option><option>Ciências e Matemática</option></select></label><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Base didática local; confirme temas complexos nas fontes da Biblioteca.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
           </div>
-          <footer className="footer"><span>ATLAS ACADEMY</span><span>CONHECIMENTO EM CONSTRUÇÃO · 2026</span></footer>
+          <footer className="footer"><span>ATLAS ACADEMY</span><span>VERSÃO 1.0.0 · CONHECIMENTO EM CONSTRUÇÃO · 2026</span></footer>
         </div>
       </section>
     </main>
