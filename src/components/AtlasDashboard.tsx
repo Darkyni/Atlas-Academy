@@ -44,12 +44,12 @@ const extensionByCourse: Record<string, string[]> = {
   "ciencias-matematica": ["cie-10", "cie-11", "cie-12"]
 };
 const advancedByCourse: Record<string, string[]> = {
-  direito: ["direito-14", "direito-15", "direito-16"],
-  "economia-financas": ["eco-13", "eco-14", "eco-16"],
-  "tecnologia-ia": ["tec-13", "tec-14", "tec-16"],
-  "historia-geopolitica": ["his-13", "his-14", "his-16"],
-  "filosofia-pensamento": ["fil-13", "fil-14", "fil-16"],
-  "ciencias-matematica": ["cie-13", "cie-14", "cie-16"]
+  direito: ["direito-14", "direito-15", "direito-16", "direito-17", "direito-18"],
+  "economia-financas": ["eco-13", "eco-14", "eco-16", "eco-17", "eco-18"],
+  "tecnologia-ia": ["tec-13", "tec-14", "tec-16", "tec-17", "tec-18"],
+  "historia-geopolitica": ["his-13", "his-14", "his-16", "his-17", "his-18"],
+  "filosofia-pensamento": ["fil-13", "fil-14", "fil-16", "fil-17", "fil-18"],
+  "ciencias-matematica": ["cie-13", "cie-14", "cie-16", "cie-17", "cie-18"]
 };
 for (const course of allCourses) {
   const extraIds = extensionByCourse[course.id] ?? [];
@@ -87,6 +87,8 @@ export default function AtlasDashboard() {
   const [loading, setLoading] = useState(false);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
+  const [authName, setAuthName] = useState("");
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [authMessage, setAuthMessage] = useState("");
   const [showAuth, setShowAuth] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
@@ -212,8 +214,18 @@ export default function AtlasDashboard() {
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
+    setAuthMessage("");
     if (!supabase) {
-      setAuthMessage("Configure as variáveis do Supabase para habilitar o acesso.");
+      setAuthMessage("O acesso com conta exige configurar NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY. O modo de demonstração continua disponível.");
+      return;
+    }
+    if (authMode === "signup") {
+      if (authPassword.length < 8) { setAuthMessage("Use uma senha com pelo menos 8 caracteres."); return; }
+      const { data, error } = await supabase.auth.signUp({
+        email: authEmail, password: authPassword, options: { data: { full_name: authName.trim() }, emailRedirectTo: `${window.location.origin}/` }
+      });
+      setAuthMessage(error ? error.message : data.session ? "Conta criada e acesso iniciado." : "Conta criada. Verifique seu e-mail para confirmar o cadastro antes de entrar.");
+      if (!error && data.session) setAuthMode("login");
       return;
     }
     const { error } = await supabase.auth.signInWithPassword({
@@ -254,7 +266,7 @@ export default function AtlasDashboard() {
     <main className="app-shell">
       <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
         <div className="brand">
-          <div className="brand-mark">A.</div>
+          <div className="brand-mark"><img src="/atlas-mark.svg" alt="" width="42" height="42"/></div>
           <div><strong>ATLAS</strong><span>ACADEMY</span></div>
           <button className="icon-button close-mobile" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X size={18}/></button>
         </div>
@@ -276,12 +288,15 @@ export default function AtlasDashboard() {
           <button className="profile-button" onClick={() => setShowAuth(v => !v)}>
             <div className="avatar">A</div><div><strong>Estudante</strong><span>{isSupabaseConfigured ? "Acessar conta" : "Modo de demonstração"}</span></div><ChevronDown size={15}/>
           </button>
-          {showAuth && <form className="auth-popover" onSubmit={signIn}>
-            <strong>Acessar sua conta</strong>
-            <input type="email" placeholder="E-mail" value={authEmail} onChange={e => setAuthEmail(e.target.value)} required/>
-            <input type="password" placeholder="Senha" value={authPassword} onChange={e => setAuthPassword(e.target.value)} required/>
-            <button className="button button-dark" type="submit">Entrar</button>
-            {authMessage && <small>{authMessage}</small>}
+          {showAuth && <form className="auth-popover auth-popover-v2" onSubmit={signIn}>
+            <strong>{authMode === "login" ? "Acessar sua conta" : "Criar conta de estudante"}</strong>
+            <div className="auth-mode-tabs"><button type="button" className={authMode === "login" ? "active" : ""} onClick={() => {setAuthMode("login");setAuthMessage("");}}>Entrar</button><button type="button" className={authMode === "signup" ? "active" : ""} onClick={() => {setAuthMode("signup");setAuthMessage("");}}>Criar conta</button></div>
+            {authMode === "signup" && <input type="text" placeholder="Nome de estudante" value={authName} onChange={e => setAuthName(e.target.value)} autoComplete="name" required/>}
+            <input type="email" placeholder="E-mail" value={authEmail} onChange={e => setAuthEmail(e.target.value)} autoComplete="email" required/>
+            <input type="password" placeholder={authMode === "signup" ? "Senha (mínimo 8 caracteres)" : "Senha"} value={authPassword} onChange={e => setAuthPassword(e.target.value)} autoComplete={authMode === "signup" ? "new-password" : "current-password"} minLength={authMode === "signup" ? 8 : 1} required/>
+            <button className="button button-dark" type="submit">{authMode === "login" ? "Entrar" : "Criar minha conta"}</button>
+            {authMessage && <small role="status">{authMessage}</small>}
+            {!isSupabaseConfigured && <small>O cadastro ficará ativo quando o projeto Supabase estiver configurado no ambiente da aplicação.</small>}
           </form>}
         </div>
       </aside>
@@ -393,7 +408,7 @@ export default function AtlasDashboard() {
 
           {active === "Desafios" && <LearningArcade/>}
 
-          {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O tutor deve explicar fundamentos, comparar perspectivas, propor exemplos e ajudar você a testar o próprio entendimento.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">ATLAS AI</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><label className="tutor-area-label">Área de aprofundamento<select value={tutorArea} onChange={event=>setTutorArea(event.target.value)}><option>Interdisciplinar</option><option>Direito e instituições</option><option>Economia e Finanças</option><option>Tecnologia e Inteligência Artificial</option><option>História e Geopolítica</option><option>Filosofia e Pensamento Crítico</option><option>Ciências e Matemática</option></select></label><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Confira informações importantes em fontes confiáveis.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
+          {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O Tutor ATLAS funciona no modo gratuito local: usa uma base didática incorporada ao projeto, sem chave de API, cobrança ou créditos externos.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">GRATUITO · SEM API</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><label className="tutor-area-label">Área de aprofundamento<select value={tutorArea} onChange={event=>setTutorArea(event.target.value)}><option>Interdisciplinar</option><option>Direito e instituições</option><option>Economia e Finanças</option><option>Tecnologia e Inteligência Artificial</option><option>História e Geopolítica</option><option>Filosofia e Pensamento Crítico</option><option>Ciências e Matemática</option></select></label><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Base didática local; confirme temas complexos nas fontes da Biblioteca.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
           </div>
           <footer className="footer"><span>ATLAS ACADEMY</span><span>CONHECIMENTO EM CONSTRUÇÃO · 2026</span></footer>
         </div>

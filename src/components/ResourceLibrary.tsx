@@ -31,6 +31,7 @@ export default function ResourceLibrary() {
   const [uploaded, setUploaded] = useState<UploadedResource[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [fileTitle, setFileTitle] = useState("");
+  const [uploadDepartment, setUploadDepartment] = useState<(typeof departments)[number]>("Direito e instituições");
   const [uploadMessage, setUploadMessage] = useState("");
   const [uploading, setUploading] = useState(false);
 
@@ -60,7 +61,9 @@ export default function ResourceLibrary() {
       if (!data || cancelled) return;
       const mapped = await Promise.all(data.filter(item => item.storage_path).map(async item => {
         const { data: signed } = await supabase!.storage.from("atlas-library").createSignedUrl(item.storage_path, 3600);
-        return { id: item.id, title: item.title, author: item.author || "Material pessoal", institution: item.institution || "Biblioteca pessoal", kind: "PDF" as ResourceKind, topic: item.topic || "Arquivo pessoal", department: "Minha biblioteca", description: item.description || "Arquivo enviado para sua biblioteca privada.", url: signed?.signedUrl || "", access: "Acesso aberto" as const };
+        const savedTopic = item.topic || "Arquivo pessoal";
+        const matchedDepartment = departments.slice(1, 7).find(name => savedTopic.startsWith(`${name} ::`));
+        return { id: item.id, title: item.title, author: item.author || "Material pessoal", institution: item.institution || "Biblioteca pessoal", kind: "PDF" as ResourceKind, topic: matchedDepartment ? savedTopic.replace(`${matchedDepartment} :: `, "") : savedTopic, department: matchedDepartment || "Minha biblioteca", description: item.description || "Arquivo enviado para sua biblioteca privada.", url: signed?.signedUrl || "", access: "Acesso aberto" as const };
       }));
       if (!cancelled) setUploaded(mapped.filter(item => item.url));
     }
@@ -82,13 +85,13 @@ export default function ResourceLibrary() {
       const path = `${userData.user.id}/${Date.now()}-${safeName}`;
       const { error: storageError } = await supabase.storage.from("atlas-library").upload(path, file, { contentType: "application/pdf", upsert: false });
       if (storageError) throw storageError;
-      const { data: record, error: recordError } = await supabase.from("learning_resources").insert({ owner_id: userData.user.id, title: fileTitle.trim() || file.name.replace(/\.pdf$/i, ""), author: "Arquivo pessoal", institution: "Biblioteca pessoal", resource_type: "pdf", description: "PDF enviado pelo estudante.", topic: "Material pessoal", storage_path: path, access_level: "private" }).select("id").single();
+      const { data: record, error: recordError } = await supabase.from("learning_resources").insert({ owner_id: userData.user.id, title: fileTitle.trim() || file.name.replace(/\.pdf$/i, ""), author: "Arquivo pessoal", institution: "Biblioteca pessoal", resource_type: "pdf", description: "PDF enviado pelo estudante.", topic: `${uploadDepartment} :: Material pessoal`, storage_path: path, access_level: "private" }).select("id").single();
       if (recordError) {
         await supabase.storage.from("atlas-library").remove([path]);
         throw recordError;
       }
       const { data: signed } = await supabase.storage.from("atlas-library").createSignedUrl(path, 3600);
-      if (signed?.signedUrl) setUploaded(current => [{ id: record.id, title: fileTitle.trim() || file.name, author: "Arquivo pessoal", institution: "Biblioteca pessoal", kind: "PDF", topic: "Material pessoal", department: "Minha biblioteca", description: "PDF privado enviado por você. Link de acesso temporário.", url: signed.signedUrl, access: "Acesso aberto" }, ...current]);
+      if (signed?.signedUrl) setUploaded(current => [{ id: record.id, title: fileTitle.trim() || file.name, author: "Arquivo pessoal", institution: "Biblioteca pessoal", kind: "PDF", topic: "Material pessoal", department: uploadDepartment, description: "PDF privado enviado por você. Link de acesso temporário.", url: signed.signedUrl, access: "Acesso aberto" }, ...current]);
       setFile(null); setFileTitle("");
       const input = document.getElementById("atlas-pdf-upload") as HTMLInputElement | null;
       if (input) input.value = "";
@@ -98,16 +101,18 @@ export default function ResourceLibrary() {
     } finally { setUploading(false); }
   }
 
-  const resources = useMemo(() => [...uploaded, ...learningResources].filter(resource => {
+  const allResources = useMemo(() => [...uploaded, ...learningResources], [uploaded]);
+  const resources = useMemo(() => allResources.filter(resource => {
     const matchesFilter = filter === "Todos" || resource.kind === filter;
     const matchesDepartment = department === "Todos" || resource.department === department;
     const haystack = `${resource.title} ${resource.author} ${resource.institution} ${resource.topic} ${resource.description}`.toLocaleLowerCase("pt-BR");
     return matchesFilter && matchesDepartment && (!showSaved || savedIds.includes(resource.id)) && haystack.includes(query.toLocaleLowerCase("pt-BR"));
-  }), [filter, department, query, uploaded, showSaved, savedIds]);
+  }), [filter, department, query, allResources, showSaved, savedIds]);
   const orderedResources = useMemo(() => {
     const order = departments.slice(1, 7);
     return [...resources].sort((a,b) => order.indexOf(a.department || "") - order.indexOf(b.department || "") || a.title.localeCompare(b.title, "pt-BR"));
   }, [resources]);
+  const groupedResources = useMemo(() => departments.slice(1).map(name => ({ name, items: orderedResources.filter(item => item.department === name) })).filter(group => group.items.length > 0), [orderedResources]);
 
   return <section className="page-section resource-library-page">
     <div className="eyebrow">ACERVO MULTIMÍDIA CURADO</div>
@@ -116,10 +121,11 @@ export default function ResourceLibrary() {
     <div className="library-feature library-feature-v2"><BookOpen size={28}/><div><h2>Uma biblioteca com origem identificada.</h2><p>Prioridade para legislação oficial, publicações acadêmicas de acesso aberto, repositórios públicos e catálogos editoriais. O ATLAS identifica quando um item é PDF, artigo, livro ou vídeo.</p></div></div>
     <form className="library-upload" onSubmit={uploadFile}>
       <div><div className="eyebrow">SUA COLEÇÃO PARTICULAR</div><h2>Adicionar PDF à biblioteca</h2><p>Envie seus próprios materiais de estudo. Os arquivos ficam em um bucket privado e só sua conta pode acessá-los.</p></div>
-      <div className="library-upload-fields"><input aria-label="Título do material" value={fileTitle} onChange={event => setFileTitle(event.target.value)} placeholder="Título do material (opcional)"/><input id="atlas-pdf-upload" type="file" accept="application/pdf,.pdf" onChange={event => setFile(event.target.files?.[0] || null)}/><button className="button button-dark" type="submit" disabled={uploading}>{uploading ? "Enviando..." : "Enviar PDF"}</button></div>
+      <div className="library-upload-fields"><input aria-label="Título do material" value={fileTitle} onChange={event => setFileTitle(event.target.value)} placeholder="Título do material (opcional)"/><select aria-label="Disciplina do PDF" value={uploadDepartment} onChange={event => setUploadDepartment(event.target.value as (typeof departments)[number])}>{departments.slice(1, 7).map(item => <option key={item} value={item}>{item}</option>)}</select><input id="atlas-pdf-upload" type="file" accept="application/pdf,.pdf" onChange={event => setFile(event.target.files?.[0] || null)}/><button className="button button-dark" type="submit" disabled={uploading}>{uploading ? "Enviando..." : "Enviar PDF"}</button></div>
       {uploadMessage && <p className="upload-message" role="status">{uploadMessage}</p>}
       {!isSupabaseConfigured && <p className="upload-message">O envio de arquivos será habilitado depois de configurar o Supabase e executar a migração acadêmica v2.</p>}
     </form>
+    <div className="library-subject-picker" aria-label="Organizar biblioteca por disciplina">{departments.slice(1, 7).map((item, index) => <button type="button" key={item} className={department === item ? "active" : ""} onClick={() => setDepartment(department === item ? "Todos" : item)}><span className={`subject-number subject-${index + 1}`}>{String(index + 1).padStart(2, "0")}</span><span>{item}</span><small>{allResources.filter(resource => resource.department === item).length} materiais</small></button>)}</div>
     <div className="library-controls">
       <label className="search-box"><Search size={17}/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar por título, autor ou assunto..."/></label>
       <div className="library-filter-label"><Filter size={14}/> Tipo de material</div>
@@ -129,20 +135,17 @@ export default function ResourceLibrary() {
       </button>
     </div>
     <div className="library-results-head"><strong>{resources.length} materiais encontrados</strong><span>{department === "Todos" ? "Acervo multidisciplinar" : department}</span></div>
-    <div className="resource-grid-v2">{orderedResources.map((resource,index) => {
-      const previousDepartment = orderedResources[index-1]?.department;
-      const showDepartmentHeading = department === "Todos" && resource.department !== previousDepartment;
-      const Icon = iconFor(resource.kind);
-      return <div className="resource-group-wrap" key={resource.id}>{showDepartmentHeading && <div className="resource-group-heading"><span>{resource.department || "Acervo"}</span><i/></div>}<article className="resource-card-v2">
-        <div className="resource-card-top"><div className="resource-icon-v2"><Icon size={19}/></div><div className="resource-card-actions"><span className={`resource-kind kind-${resource.kind.toLowerCase()}`}>{resource.kind}</span><button className={`resource-save-button ${savedIds.includes(resource.id) ? "saved" : ""}`} onClick={() => toggleSaved(resource.id)} aria-label={savedIds.includes(resource.id) ? "Remover dos salvos" : "Salvar material"} title={savedIds.includes(resource.id) ? "Remover dos salvos" : "Salvar material"}>{savedIds.includes(resource.id) ? <BookmarkCheck size={15}/> : <Bookmark size={15}/>}</button></div></div>
-        <div className="resource-topic">{resource.department || "Acervo"} · {resource.topic}</div>
-        <h2>{resource.title}</h2>
-        <p className="resource-byline">{resource.author} · {resource.institution}</p>
-        <p className="resource-description">{resource.description}</p>
-        {resource.note && <p className="resource-note">{resource.note}</p>}
-        <div className="resource-card-bottom"><span>{resource.access}</span><a href={resource.url} target="_blank" rel="noreferrer">Acessar material <ExternalLink size={13}/></a></div>
-      </article></div>;
-    })}</div>
+    <div className="library-subject-sections">{groupedResources.map(group => <section className="library-subject-section" key={group.name}>
+      <header className="library-subject-heading"><div><span className="eyebrow">DISCIPLINA</span><h2>{group.name}</h2></div><span>{group.items.length} materiais</span></header>
+      <div className="resource-grid-v2">{group.items.map(resource => {
+        const Icon = iconFor(resource.kind);
+        return <article className="resource-card-v2" key={resource.id}>
+          <div className="resource-card-top"><div className="resource-icon-v2"><Icon size={19}/></div><div className="resource-card-actions"><span className={`resource-kind kind-${resource.kind.toLowerCase()}`}>{resource.kind}</span><button className={`resource-save-button ${savedIds.includes(resource.id) ? "saved" : ""}`} onClick={() => toggleSaved(resource.id)} aria-label={savedIds.includes(resource.id) ? "Remover dos salvos" : "Salvar material"} title={savedIds.includes(resource.id) ? "Remover dos salvos" : "Salvar material"}>{savedIds.includes(resource.id) ? <BookmarkCheck size={15}/> : <Bookmark size={15}/>}</button></div></div>
+          <div className="resource-topic">{resource.topic}</div><h2>{resource.title}</h2><p className="resource-byline">{resource.author} · {resource.institution}</p><p className="resource-description">{resource.description}</p>{resource.note && <p className="resource-note">{resource.note}</p>}
+          <div className="resource-card-bottom"><span>{resource.access}</span><a href={resource.url} target="_blank" rel="noreferrer">Acessar material <ExternalLink size={13}/></a></div>
+        </article>;
+      })}</div>
+    </section>)}</div>
     {resources.length === 0 && <div className="empty-state"><Search size={24}/><strong>Nenhum material encontrado</strong><span>Tente outro termo ou selecione outro tipo de material.</span></div>}
     <p className="source-note">Curadoria do ATLAS. Links, versões e condições de acesso podem mudar; confirme a atualização na instituição de origem. Livros comerciais são indicados por referência e catálogo, não disponibilizados ilegalmente para download.</p>
   </section>;

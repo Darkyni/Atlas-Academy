@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight, Brain, CheckCircle2, RotateCw, Sparkles, CalendarClock,
-  NotebookPen, Layers, BookOpen, AlertCircle
+  NotebookPen, Layers, BookOpen, AlertCircle, Gamepad2, ClipboardCheck, Trophy
 } from "lucide-react";
 import { studyCards, practiceScenarios } from "@/lib/atlas-study-data";
+import LearningArcade from "@/components/LearningArcade";
 
 type Grade = "again" | "hard" | "good" | "easy";
 type ReviewRecord = { dueAt: number; interval: number; repetitions: number; lapses: number; lastGrade: Grade };
@@ -25,6 +26,12 @@ export default function LearningLab() {
   const [showScenarioFeedback, setShowScenarioFeedback] = useState(false);
   const [note, setNote] = useState("");
   const [noteSaved, setNoteSaved] = useState(false);
+  const [activeTool, setActiveTool] = useState<"review" | "test" | "games">("review");
+  const [testIndex, setTestIndex] = useState(0);
+  const [testChoice, setTestChoice] = useState<number | null>(null);
+  const [testAnswers, setTestAnswers] = useState<Array<{ id: string; correct: boolean }>>([]);
+  const [testFinished, setTestFinished] = useState(false);
+  const [testFeedback, setTestFeedback] = useState<{ correct: boolean; text: string } | null>(null);
 
   useEffect(() => {
     try {
@@ -60,6 +67,8 @@ export default function LearningLab() {
   const scenarioDepartment = department === "Todos" ? "Direito e instituições" : department;
   const departmentScenarios = practiceScenarios.filter(item => item.department === scenarioDepartment);
   const scenario = departmentScenarios[scenarioIndex % Math.max(1, departmentScenarios.length)] || practiceScenarios[0];
+  const testQuestions = useMemo(() => practiceScenarios.filter(item => department === "Todos" || item.department === department).slice(0, 6), [department]);
+  const currentTestQuestion = testQuestions[testIndex];
 
   function changeDepartment(value: string) {
     setDepartment(value);
@@ -68,6 +77,7 @@ export default function LearningLab() {
     setScenarioChoice(null);
     setScenarioIndex(0);
     setShowScenarioFeedback(false);
+    setTestIndex(0); setTestChoice(null); setTestAnswers([]); setTestFinished(false); setTestFeedback(null);
   }
 
   function gradeCard(grade: Grade) {
@@ -120,6 +130,28 @@ export default function LearningLab() {
       <div><CheckCircle2 size={18}/><strong>{mastered}</strong><span>cartões consolidados</span></div>
     </div>
 
+    <div className="lab-mode-tabs" role="tablist" aria-label="Ferramentas do laboratório">
+      <button type="button" role="tab" aria-selected={activeTool === "review"} className={activeTool === "review" ? "active" : ""} onClick={() => setActiveTool("review")}><Brain size={16}/> Revisão e casos</button>
+      <button type="button" role="tab" aria-selected={activeTool === "test"} className={activeTool === "test" ? "active" : ""} onClick={() => setActiveTool("test")}><ClipboardCheck size={16}/> Testes dinâmicos</button>
+      <button type="button" role="tab" aria-selected={activeTool === "games"} className={activeTool === "games" ? "active" : ""} onClick={() => setActiveTool("games")}><Gamepad2 size={16}/> Jogos e simulações</button>
+    </div>
+
+    {activeTool === "games" && <div className="lab-games-embed"><LearningArcade initialDepartment={department} /></div>}
+
+    {activeTool === "test" && <article className="lab-panel dynamic-test-panel">
+      <div className="lab-panel-head"><div><div className="eyebrow">04 · AVALIAÇÃO FORMATIVA</div><h2>Teste dinâmico por disciplina</h2></div><ClipboardCheck size={22}/></div>
+      <p>Responda a uma sequência de questões contextualizadas. Ao final, veja seu resultado e revise os pontos que precisam de atenção.</p>
+      {!testFinished && currentTestQuestion ? <>
+        <div className="dynamic-test-progress"><span>QUESTÃO {testIndex + 1} DE {testQuestions.length}</span><div><i style={{ width: `${((testIndex + 1) / testQuestions.length) * 100}%` }}/></div></div>
+        <div className="dynamic-test-topic">{currentTestQuestion.department} · {currentTestQuestion.title}</div>
+        <h3>{currentTestQuestion.prompt}</h3>
+        <div className="scenario-options">{currentTestQuestion.options.map((option, index) => <button key={option.label} disabled={Boolean(testFeedback)} className={`scenario-option ${testChoice === index ? "selected" : ""} ${testFeedback && option.correct ? "scenario-correct" : ""}`} onClick={() => setTestChoice(index)}><span>{String.fromCharCode(65 + index)}</span>{option.label}</button>)}</div>
+        {testFeedback && <div className={`scenario-feedback ${testFeedback.correct ? "good" : "needs-work"}`}><strong>{testFeedback.correct ? "Resposta correta." : "Vamos revisar."}</strong><p>{testFeedback.text}</p></div>}
+        {!testFeedback ? <button className="button button-dark" disabled={testChoice === null} onClick={() => { const picked = currentTestQuestion.options[testChoice!]; setTestAnswers(old => [...old, { id: currentTestQuestion.id, correct: picked.correct }]); setTestFeedback({ correct: picked.correct, text: picked.feedback }); }}>Confirmar resposta <ArrowRight size={14}/></button> : <button className="button button-dark" onClick={() => { if (testIndex + 1 >= testQuestions.length) setTestFinished(true); else setTestIndex(old => old + 1); setTestChoice(null); setTestFeedback(null); }}> {testIndex + 1 >= testQuestions.length ? "Ver resultado" : "Próxima questão"} <ArrowRight size={14}/></button>}
+      </> : testFinished ? <div className="dynamic-test-result"><Trophy size={30}/><strong>{testAnswers.filter(item => item.correct).length} de {testAnswers.length} respostas corretas</strong><span>{Math.round((testAnswers.filter(item => item.correct).length / Math.max(1, testAnswers.length)) * 100)}% de aproveitamento · {department}</span><p>Use o resultado como diagnóstico: retorne às aulas e aos cartões dos temas em que teve dificuldade.</p><button className="button button-dark" onClick={() => { setTestIndex(0); setTestChoice(null); setTestAnswers([]); setTestFinished(false); setTestFeedback(null); }}>Refazer teste</button></div> : <div className="review-empty"><strong>Não há questões cadastradas para esta seleção.</strong><span>Escolha outra disciplina para continuar.</span></div>}
+    </article>}
+
+    {activeTool === "review" && <>
     <div className="lab-grid">
       <article className="lab-panel flashcard-panel">
         <div className="lab-panel-head">
@@ -170,5 +202,6 @@ export default function LearningLab() {
     </article>
 
     <div className="lab-reading-note"><Brain size={18}/><div><strong>O método por trás do laboratório</strong><p>O ATLAS combina recuperação ativa, prática distribuída, feedback e elaboração. Não basta reler: tente recuperar a ideia, explique com suas palavras, confira e retorne ao tema em intervalos progressivos.</p></div></div>
+    </>}
   </section>;
 }
