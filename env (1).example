@@ -1,8 +1,0 @@
-# Supabase — crie um projeto novo e exclusivo para o ATLAS
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-
-# OpenAI — opcional e usada exclusivamente na avaliação de domínio assistida por IA.
-# O Tutor ATLAS não usa API externa nem consome créditos.
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-4.1-mini
