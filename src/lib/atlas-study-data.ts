@@ -48,6 +48,24 @@ export const studyCards: StudyFlashcard[] = [
   {id:"cie-card-7",department:"Ciências e Matemática",front:"Por que correlação não prova causalidade?",back:"Porque uma terceira variável, causalidade reversa ou coincidência pode explicar a associação observada."},
   {id:"cie-card-8",department:"Ciências e Matemática",front:"O que é taxa-base?",back:"A frequência ou probabilidade prévia de um evento na população antes de observar nova evidência."},
   {id:"cie-card-9",department:"Ciências e Matemática",front:"Um corpo em movimento circular com rapidez constante tem aceleração?",back:"Sim. A direção da velocidade muda continuamente, produzindo aceleração centrípeta."},
+  {id:"law-card-10",department:"Direito e instituições",front:"Posse e propriedade são a mesma coisa?",back:"Não. Posse é uma situação de exercício de poderes de fato sobre o bem; propriedade é um direito real juridicamente reconhecido."},
+  {id:"law-card-11",department:"Direito e instituições",front:"Qual a função da matrícula imobiliária?",back:"Individualizar o imóvel e concentrar os atos registrais relevantes, permitindo examinar titularidade, ônus e averbações."},
+  {id:"eco-card-10",department:"Economia e Finanças",front:"Qual é a função da CVM?",back:"Regular e fiscalizar o mercado de valores mobiliários, protegendo seu funcionamento e os investidores dentro de suas competências."},
+  {id:"eco-card-11",department:"Economia e Finanças",front:"O que é marcação a mercado?",back:"É a atualização do preço de um ativo conforme as condições atuais de negociação; pode gerar oscilação antes do vencimento."},
+  {id:"tec-card-10",department:"Tecnologia e Inteligência Artificial",front:"O que o HTTPS protege?",back:"A comunicação entre cliente e servidor por criptografia, integridade e autenticação do servidor; não garante que o site seja confiável."},
+  {id:"tec-card-11",department:"Tecnologia e Inteligência Artificial",front:"Quais são os três pilares clássicos da segurança da informação?",back:"Confidencialidade, integridade e disponibilidade."},
+  {id:"hist-card-10",department:"História e Geopolítica",front:"Por que a Revolução Industrial foi um processo histórico amplo?",back:"Porque combinou mudanças tecnológicas, econômicas, institucionais, demográficas e sociais ao longo do tempo."},
+  {id:"hist-card-11",department:"História e Geopolítica",front:"O que é vulnerabilidade estratégica em uma cadeia de suprimentos?",back:"Dependência de poucos fornecedores, rotas ou tecnologias que pode interromper o acesso a insumos essenciais."},
+  {id:"fil-card-10",department:"Filosofia e Pensamento Crítico",front:"O que é validade em um argumento dedutivo?",back:"A conclusão decorre necessariamente das premissas; se as premissas forem verdadeiras, a conclusão não pode ser falsa."},
+  {id:"fil-card-11",department:"Filosofia e Pensamento Crítico",front:"Crença verdadeira é suficiente para conhecimento?",back:"Não necessariamente. A epistemologia investiga também justificação, confiabilidade e o papel da sorte epistêmica."},
+  {id:"cie-card-10",department:"Ciências e Matemática",front:"Quando a mediana é útil?",back:"Em distribuições assimétricas ou com valores extremos, pois é menos sensível a esses valores do que a média."},
+  {id:"cie-card-11",department:"Ciências e Matemática",front:"Correlação prova causalidade?",back:"Não. Fatores de confusão, causalidade reversa ou coincidência podem explicar a associação observada."},
+  {id:"law-card-12",department:"Direito e instituições",front:"Qual a importância de guardar protocolos em uma reclamação de consumo?",back:"Eles documentam a tentativa de solução, a cronologia e a comunicação com o fornecedor."},
+  {id:"eco-card-12",department:"Economia e Finanças",front:"PIB maior significa que todas as famílias ficaram mais ricas?",back:"Não. O PIB é agregado e não mostra, sozinho, distribuição de renda ou bem-estar de cada família."},
+  {id:"tec-card-12",department:"Tecnologia e Inteligência Artificial",front:"Para que servem condicionais em programação?",back:"Para escolher caminhos de execução com base em uma condição lógica."},
+  {id:"hist-card-12",department:"História e Geopolítica",front:"A abolição legal eliminou automaticamente desigualdades?",back:"Não. A abolição não foi acompanhada de políticas suficientes para desfazer estruturas sociais e econômicas acumuladas."},
+  {id:"fil-card-12",department:"Filosofia e Pensamento Crítico",front:"Eleições são suficientes para caracterizar democracia constitucional?",back:"Não. Também são necessários pluralismo, direitos, Estado de Direito, liberdade e mecanismos de controle do poder."},
+  {id:"cie-card-12",department:"Ciências e Matemática",front:"Um objeto com velocidade constante precisa de força resultante?",back:"Não. Em movimento retilíneo uniforme, a aceleração e a força resultante são nulas no modelo newtoniano."},
 ];
 
 export type PracticeScenario = {
@@ -117,3 +135,18 @@ export const practiceScenarios: PracticeScenario[] = [
     {label:"Ignorar todos os gráficos que não começam em zero.",correct:false,feedback:"Escalas truncadas podem ser úteis em alguns contextos, desde que sejam explícitas e interpretadas corretamente."}
   ],takeaway:"Leia eixos, unidades, escalas e fontes antes de inferir magnitude ou tendência."},
 ];
+
+studyCards.push(
+  {id:"law-card-14",department:"Direito e instituições",front:"O que a boa-fé objetiva exige em uma relação contratual?",back:"Padrões de lealdade, informação, cooperação e proteção da confiança, conforme o contexto e o regime jurídico."},
+  {id:"law-card-15",department:"Direito e instituições",front:"Quais elementos são investigados na responsabilidade civil?",back:"Conduta ou fato juridicamente relevante, dano, nexo causal e, quando exigida, culpa; também se examinam excludentes."},
+  {id:"eco-card-13",department:"Economia e Finanças",front:"Como calcular a taxa real exata?",back:"(1 + taxa nominal) ÷ (1 + inflação) − 1. A subtração simples é apenas uma aproximação."},
+  {id:"eco-card-14",department:"Economia e Finanças",front:"Diversificação elimina todo risco?",back:"Não. Pode reduzir riscos específicos e concentração, mas não elimina risco sistêmico nem garante retorno."},
+  {id:"tech-card-13",department:"Tecnologia e Inteligência Artificial",front:"Quais são os elementos básicos de um algoritmo?",back:"Entradas, sequência finita de instruções, decisões/repetições quando necessárias e saídas verificáveis."},
+  {id:"tech-card-14",department:"Tecnologia e Inteligência Artificial",front:"Por que uma saída de IA precisa ser verificada?",back:"Modelos podem errar, alucinar, refletir vieses e não compreender adequadamente o contexto ou a atualidade dos fatos."},
+  {id:"history-card-13",department:"História e Geopolítica",front:"Por que a colonização deve ser estudada por múltiplas perspectivas?",back:"Porque envolveu povos indígenas, agentes coloniais, africanos escravizados, resistências, negociações e estruturas econômicas diversas."},
+  {id:"history-card-14",department:"História e Geopolítica",front:"A Guerra Fria foi apenas uma disputa entre EUA e URSS?",back:"Não. A rivalidade das superpotências interagiu com conflitos locais, descolonização e projetos próprios de outros países."},
+  {id:"philo-card-13",department:"Filosofia e Pensamento Crítico",front:"Qual a diferença entre consequencialismo, deontologia e virtudes?",back:"Consequencialismo enfatiza resultados; deontologia, deveres e princípios; ética das virtudes, caráter e hábitos."},
+  {id:"philo-card-14",department:"Filosofia e Pensamento Crítico",front:"O que é um espantalho argumentativo?",back:"Distorcer a posição adversária para torná-la mais fácil de atacar, em vez de responder à tese real."},
+  {id:"science-card-13",department:"Ciências e Matemática",front:"Uma amostra grande é necessariamente representativa?",back:"Não. Viés de seleção, cobertura incompleta e não resposta podem distorcer resultados mesmo em amostras grandes."},
+  {id:"science-card-14",department:"Ciências e Matemática",front:"Como calcular consumo elétrico aproximado?",back:"Potência em quilowatts multiplicada pelo tempo em horas resulta em consumo em kWh."}
+);
