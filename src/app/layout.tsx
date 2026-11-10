@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "ATLAS Academy",
-  description: "Uma academia pessoal organizada por territórios do conhecimento, com aulas, materiais, videoaulas e desafios."
+  description: "Uma academia pessoal organizada por disciplinas, com aulas, materiais, videoaulas, laboratório e jogos educativos.",
+  icons: { icon: "/atlas-mark.svg", shortcut: "/atlas-mark.svg" }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
