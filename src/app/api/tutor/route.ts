@@ -1,55 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "Tutor ainda não configurado. Adicione OPENAI_API_KEY ao ambiente do servidor." },
-      { status: 503 }
-    );
-  }
+export const runtime = "nodejs";
 
+const knowledge: Array<{ keys: string[]; title: string; idea: string; example: string; practice: string; caution: string }> = [
+  { keys: ["custo de oportunidade", "escassez"], title: "Escassez e custo de oportunidade", idea: "Recursos como tempo, dinheiro e capacidade produtiva são limitados diante de desejos e usos alternativos. Custo de oportunidade é o valor da melhor alternativa abandonada quando uma escolha é feita.", example: "Se você usa duas horas para fazer um curso, deixa de usar esse mesmo período em outra atividade. O custo relevante não é tudo o que poderia fazer, mas a melhor alternativa que realmente deixou de escolher.", practice: "Liste duas alternativas para uma decisão real e identifique qual é a melhor opção sacrificada.", caution: "Custo de oportunidade não é necessariamente um gasto em dinheiro; pode envolver tempo, risco ou benefício não obtido." },
+  { keys: ["juros compostos", "capitalização"], title: "Juros compostos", idea: "Em juros compostos, os juros de cada período são incorporados ao saldo e passam a produzir novos juros. A expressão básica é M = C × (1 + i)^n, quando a taxa e o período são compatíveis.", example: "R$ 1.000 a 1% ao mês por dois meses: 1.000 × 1,01² = R$ 1.020,10, antes de impostos e tarifas.", practice: "Calcule o montante de R$ 500 a 2% por três períodos e compare com juros simples.", caution: "Compare taxas na mesma unidade de tempo e considere impostos, tarifas, inflação e risco ao avaliar produtos financeiros." },
+  { keys: ["inflação", "ipca"], title: "Inflação", idea: "Inflação é o aumento generalizado e persistente do nível de preços. Um preço isolado pode subir por razões específicas sem representar, sozinho, inflação geral.", example: "Se uma cesta de consumo custa R$ 200 e passa a custar R$ 230, a variação dessa cesta é 15%. Um índice oficial agrega muitos preços com pesos definidos.", practice: "Escolha três itens de consumo, registre preços em duas datas e calcule as variações individuais.", caution: "A inflação média não descreve igualmente a experiência de todas as famílias, pois as cestas de consumo diferem." },
+  { keys: ["constituição", "hierarquia normativa", "direito constitucional"], title: "Constituição e hierarquia normativa", idea: "A Constituição organiza o Estado, distribui competências, estabelece direitos e limita o exercício do poder. Normas inferiores devem respeitar os requisitos formais e materiais definidos pela Constituição.", example: "Ao analisar uma lei municipal, verifique tanto o conteúdo quanto a competência do município para legislar sobre o assunto.", practice: "Escolha uma regra pública e identifique quem a editou, qual competência utilizou e quais limites constitucionais podem ser relevantes.", caution: "Conflitos normativos exigem interpretação do caso concreto; não basta comparar datas ou popularidade das normas." },
+  { keys: ["contrato", "responsabilidade civil"], title: "Contratos e responsabilidade civil", idea: "Contratos organizam obrigações entre partes. Uma análise responsável identifica sujeitos, objeto, manifestação de vontade, documentos, contexto, cumprimento e possíveis consequências jurídicas.", example: "Em uma divergência sobre pagamento, organize contrato, comprovantes, mensagens, datas e prestação realizada antes de formular uma conclusão.", practice: "Monte uma linha do tempo com fatos comprovados, fatos controvertidos e documentos que poderiam confirmar cada ponto.", caution: "A explicação é educacional e não substitui análise profissional de documentos ou aconselhamento jurídico individual." },
+  { keys: ["phishing", "segurança digital", "senha", "golpe"], title: "Segurança digital e engenharia social", idea: "Ataques de engenharia social exploram urgência, medo, confiança ou autoridade para induzir ações. Credenciais e códigos de autenticação devem permanecer secretos.", example: "Uma mensagem urgente com link semelhante ao endereço do banco deve ser verificada por um canal independente, como o aplicativo oficial aberto manualmente.", practice: "Analise uma mensagem suspeita e marque sinais: urgência, domínio estranho, pedido de código, anexo inesperado e ameaça de bloqueio.", caution: "Logotipos e nomes conhecidos podem ser copiados; aparência não autentica a origem." },
+  { keys: ["algoritmo", "programação", "variável", "condicional"], title: "Algoritmos e programação", idea: "Um algoritmo é uma sequência finita e organizada de instruções para resolver um problema. Programas expressam algoritmos em linguagens que podem ser executadas por computadores.", example: "Para calcular uma média: receber valores, somá-los, contar quantos existem e dividir a soma pela quantidade.", practice: "Escreva em linguagem natural um algoritmo para decidir se uma pessoa atingiu uma meta, incluindo entradas, condição e saída.", caution: "Um algoritmo só é adequado se o problema, as entradas, as exceções e o resultado esperado estiverem bem definidos." },
+  { keys: ["inteligência artificial", "aprendizado de máquina", "machine learning", "ia generativa"], title: "Inteligência artificial", idea: "IA é um campo amplo. Em aprendizado de máquina, modelos ajustam parâmetros a partir de dados; inferência é o uso do modelo treinado para produzir uma saída. Modelos generativos produzem novos conteúdos a partir de padrões aprendidos.", example: "Um classificador pode estimar se uma mensagem é spam. A estimativa não é certeza: erros dependem dos dados, do objetivo e do contexto.", practice: "Escolha uma aplicação de IA e identifique objetivo, dados, pessoas afetadas, tipos de erro e formas de revisão humana.", caution: "Fluência não garante verdade. Verifique informações importantes em fontes independentes e não forneça dados sensíveis sem necessidade." },
+  { keys: ["história", "fonte histórica", "historiografia"], title: "Método de investigação histórica", idea: "O conhecimento histórico é construído por perguntas, crítica de fontes, contextualização e confronto de evidências. Uma fonte revela uma perspectiva situada, não necessariamente o retrato completo de uma sociedade.", example: "Um pronunciamento oficial informa o que uma instituição desejava comunicar, mas deve ser comparado com cartas, jornais, dados e testemunhos de outros grupos.", practice: "Pergunte quem produziu a fonte, quando, para quem, com qual finalidade e quais vozes ficaram ausentes.", caution: "Evite tratar acontecimentos complexos como resultado inevitável de uma única causa." },
+  { keys: ["geopolítica", "soberania", "relações internacionais"], title: "Geopolítica e relações internacionais", idea: "A geopolítica analisa como território, recursos, população, instituições, tecnologia e poder influenciam relações entre atores. Explicações sólidas combinam escalas e fatores, sem reduzir tudo à geografia.", example: "Uma rota marítima pode ter importância econômica, logística e estratégica, mas seu controle depende também de direito internacional, infraestrutura e alianças.", practice: "Escolha uma região e mapeie atores, interesses, recursos, dependências e possíveis pontos de tensão.", caution: "Distinga fatos confirmados, interpretações de especialistas e cenários hipotéticos." },
+  { keys: ["falácia", "argumento", "lógica", "ad hominem"], title: "Argumentação e falácias", idea: "Um argumento apresenta premissas que pretendem sustentar uma conclusão. Avalie clareza, relevância das premissas, validade da inferência e qualidade das evidências.", example: "Dizer que uma tese é falsa porque seu autor é desagradável ataca a pessoa, mas não responde às razões que sustentam a tese.", practice: "Escreva uma conclusão, duas premissas e um possível contraexemplo. Depois veja se as premissas realmente apoiam a conclusão.", caution: "Nomear uma falácia não basta: explique qual é o defeito lógico e se ele afeta a conclusão." },
+  { keys: ["ética", "utilitarismo", "deontologia"], title: "Teorias éticas", idea: "Teorias éticas oferecem critérios diferentes para avaliar ações. Abordagens consequencialistas enfatizam resultados; teorias deontológicas destacam deveres e princípios; a ética das virtudes examina caráter e hábitos.", example: "Diante de uma decisão difícil, compare consequências previsíveis, deveres envolvidos e qualidades de caráter exigidas.", practice: "Analise um dilema usando três lentes: consequências, deveres e virtudes. Registre onde as respostas divergem.", caution: "Teorias éticas não eliminam desacordos; explicite valores, fatos e incertezas." },
+  { keys: ["probabilidade", "estatística", "amostra", "média"], title: "Estatística e probabilidade", idea: "Estatística descreve dados e apoia inferências sob incerteza. A qualidade de uma conclusão depende de como os dados foram coletados, da representatividade, das medidas e dos pressupostos.", example: "Uma enquete voluntária em rede social pode reunir milhares de respostas e ainda assim não representar a população, por causa do viés de seleção.", practice: "Ao ler uma pesquisa, procure população-alvo, método de amostragem, tamanho, taxa de resposta e margem de erro quando aplicável.", caution: "Correlação não demonstra causalidade, e uma amostra grande não corrige automaticamente um processo de seleção enviesado." },
+  { keys: ["energia", "física", "newton", "força"], title: "Energia e leis físicas", idea: "Na mecânica clássica, força resultante está relacionada à aceleração pela segunda lei de Newton. Energia é uma grandeza que pode ser transferida e transformada; em sistemas adequadamente definidos, a energia total se conserva.", example: "Um aparelho de 1.500 W ligado por quatro horas consome 6 kWh de energia elétrica, sem considerar variações de potência.", practice: "Identifique potência em kW, tempo em horas e calcule energia em kWh para três aparelhos.", caution: "Modelos físicos dependem de condições e aproximações; confira unidades e limites do modelo." },
+  { keys: ["função", "matemática", "porcentagem", "equação"], title: "Matemática como linguagem de modelos", idea: "A matemática representa relações por números, símbolos, funções e estruturas. Um modelo traduz aspectos de uma situação, mas depende de hipóteses e unidades coerentes.", example: "Um aumento de R$ 200 para R$ 230 é de R$ 30; em relação ao valor inicial, 30/200 = 15%.", practice: "Crie uma tabela com valores de entrada e saída para uma situação real e descreva a regra que relaciona as variáveis.", caution: "Não interprete um resultado sem verificar unidades, base de comparação, arredondamento e hipóteses." }
+];
+
+function makeLocalAnswer(question: string, context: string) {
+  const normalized = question.toLocaleLowerCase("pt-BR").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const match = knowledge.find(item => item.keys.some(key => normalized.includes(key.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))));
+  const areaText = context.toLocaleLowerCase("pt-BR");
+  const areaDefaults: Array<[string, string]> = [["direito", "Constituição e hierarquia normativa"], ["economia", "Escassez e custo de oportunidade"], ["finanças", "Juros compostos"], ["tecnologia", "Algoritmos e programação"], ["inteligência artificial", "Inteligência artificial"], ["história", "Método de investigação histórica"], ["geopolítica", "Geopolítica e relações internacionais"], ["filosofia", "Argumentação e falácias"], ["pensamento crítico", "Argumentação e falácias"], ["ciências", "Estatística e probabilidade"], ["matemática", "Matemática como linguagem de modelos"]];
+  const defaultTitle = areaDefaults.find(([key]) => areaText.includes(key))?.[1];
+  const selected = match || knowledge.find(item => item.title === defaultTitle) || null;
+  const area = context || "Estudo interdisciplinar";
+  if (!selected) {
+    return `**Vamos investigar sua pergunta por etapas.**\n\n**1. Delimite o problema**\nReescreva sua pergunta em uma frase e identifique os termos que precisam ser definidos.\n\n**2. Separe evidências e interpretações**\nListe o que você já sabe, de onde veio essa informação e o que ainda precisa ser verificado.\n\n**3. Construa uma explicação**\nApresente uma ideia central, duas razões que a sustentem e um exemplo concreto. Depois procure um contraexemplo ou uma condição em que a explicação não funcione.\n\n**4. Aplique**\nTente usar o conceito em uma situação diferente da original. Isso ajuda a testar se houve compreensão ou apenas memorização.\n\n**Pergunta para continuar:** qual parte específica você gostaria de aprofundar: definição, exemplo, comparação ou aplicação?\n\n*Modo gratuito local do ATLAS: esta resposta usa uma base didática incorporada ao projeto, sem API externa ou créditos. Para perguntas muito específicas, consulte também os materiais da disciplina.*`;
+  }
+  return `## ${selected.title}\n\n**Ideia central**\n${selected.idea}\n\n**Exemplo concreto**\n${selected.example}\n\n**Experimente**\n${selected.practice}\n\n**Limites e cuidados**\n${selected.caution}\n\n**Como aprofundar sua pergunta**\n1. Defina os termos principais.\n2. Identifique quais fatos ou fontes sustentam a explicação.\n3. Compare uma interpretação alternativa.\n4. Aplique o conceito a outro caso e explique o que muda.\n\n*Área selecionada: ${area}. Modo gratuito local: sem API externa, cobrança ou créditos. Esta é uma tutoria guiada baseada em conteúdos incorporados, não um modelo generativo; perguntas fora da base podem exigir pesquisa complementar.*`;
+}
+
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const question = String(body.question ?? "").trim();
-    const context = String(body.context ?? "").trim().slice(0, 6000);
-
+    const context = String(body.context ?? "").trim().slice(0, 1200);
     if (!question || question.length > 3000) {
-      return NextResponse.json(
-        { error: "Envie uma pergunta de até 3.000 caracteres." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Envie uma pergunta de até 3.000 caracteres." }, { status: 400 });
     }
-
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-        instructions: "Você é o Tutor Acadêmico do ATLAS Academy. Responda em português brasileiro e parta do nível iniciante, aumentando a profundidade conforme a pergunta. Organize respostas complexas em: ideia central; explicação passo a passo; exemplo concreto; conexão com outras áreas; limites, controvérsias ou erros comuns; síntese; e uma pergunta de verificação. Diferencie fatos, interpretações, hipóteses e opiniões. Em temas científicos, jurídicos, econômicos e históricos, indique incertezas e não transforme simplificações em regras universais. Não invente autores, dados, URLs, estudos ou citações. Se não tiver segurança sobre uma fonte, diga que precisa ser verificada. Não substitua profissionais habilitados em decisões jurídicas, médicas ou financeiras individuais.",
-        input: `Contexto de estudo:\n${context || "Não informado"}\n\nPergunta do estudante:\n${question}`
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: data?.error?.message || "Falha ao consultar o tutor." },
-        { status: response.status }
-      );
-    }
-
-    const answer = (data.output || [])
-      .flatMap((item: { content?: Array<{ type?: string; text?: string }> }) => item.content || [])
-      .filter((part: { type?: string }) => part.type === "output_text")
-      .map((part: { text?: string }) => part.text || "")
-      .join("\n");
-
-    return NextResponse.json({ answer: answer || "Não foi possível obter uma resposta." });
+    return NextResponse.json({ answer: makeLocalAnswer(question, context), mode: "free-local", provider: "ATLAS Knowledge Base" });
   } catch {
-    return NextResponse.json({ error: "Não foi possível processar sua pergunta." }, { status: 500 });
+    return NextResponse.json({ error: "Não foi possível processar sua pergunta. Tente novamente." }, { status: 400 });
   }
 }
