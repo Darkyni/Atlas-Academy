@@ -1,84 +1,129 @@
-# ATLAS Academy — Build Status v0.9
+# ATLAS Academy — Build Status v1.0.0
 
-## Objetivo
-Corrigir os pontos relatados pelo estudante: jogos não visíveis/integrados ao laboratório, biblioteca misturada, laboratório simples, Tutor dependente de créditos de API, ausência de cadastro de estudante e identidade visual insatisfatória. Ampliar também aulas, materiais e dinâmicas.
+Data do pacote: 10/11/2026.
 
-## Implementado
+## Diagnóstico importante do estado publicado
 
-### Jogos e desafios
-- Catálogo ampliado de 18 para **30 missões únicas**, cinco por departamento.
-- Incluídos desafios sobre LGPD, direito do consumidor, orçamento, diversificação, privacidade, testes de software, causalidade histórica, atores geopolíticos, reconstrução de argumentos, ética, porcentagem e desenho experimental.
-- Corrigida a navegação Próxima missão para respeitar o filtro de disciplina; reiniciar pontuação também respeita o filtro ativo.
-- Jogos acessíveis na navegação Desafios e incorporados como aba do Laboratório. Ao abrir no Laboratório, o filtro inicial acompanha a disciplina selecionada.
+Na inspeção pública desta sessão:
+- O repositório `Darkyni/Atlas-Academy` apresenta `package.json` versão `0.9.0` e README que descreve a biblioteca e os jogos v0.9.
+- A URL pública Vercel associada ao repositório (`https://atlas-academy-psi.vercel.app`) ainda entrega uma página que informa **0 / 55 aulas**, com hero e textos da versão anterior.
+- Portanto, o conteúdo atual do repositório e o deployment público não estão alinhados. Não é correto afirmar que a versão 0.9 já está publicada no site.
 
-### Laboratório
-- Reorganizado em três ferramentas: Revisão e casos, Testes dinâmicos e Jogos e simulações.
-- Testes usam banco de cenários por disciplina, mostram feedback após cada resposta e apresentam resultado ao final.
-- Revisão espaçada, cartões e caderno de reflexão mantidos.
-- Adicionados 12 flashcards e 12 cenários formativos, dois de cada por disciplina.
+O pacote v1.0.0 deste trabalho é uma consolidação local e **não foi enviado ao GitHub nem implantado na Vercel**.
 
-### Biblioteca
-- Agora renderiza seções separadas por disciplina, em vez de uma grade única com agrupamentos frágeis.
-- Adicionados cartões de navegação rápida por matéria, contagem de recursos e filtros por tipo, busca e favoritos.
-- Catálogo ampliado de 73 para **91 recursos** com novas fontes de livros abertos, vídeo, artigos, documentos e cursos.
-- Upload de PDF ganhou seletor de disciplina. A categoria é persistida no campo `topic` existente como prefixo, sem exigir nova migration; ao carregar, o componente recupera a disciplina.
-- Não foram adicionados PDFs protegidos nem links de download inventados. Recursos podem apontar para catálogos institucionais quando não há um arquivo específico aberto.
+## Auditoria da base recebida
 
-### Tutor ATLAS sem créditos
-- `/api/tutor` substituído por um mecanismo local de orientação baseado em uma base de conhecimento incorporada ao projeto.
-- Não chama OpenAI, Gemini ou outro provedor; não requer chave, créditos ou pagamento.
-- Respostas incluem ideia central, exemplo, exercício, limites e caminho de aprofundamento.
-- **Limite declarado na interface:** não é um modelo generativo de linguagem; responde bem aos tópicos incluídos na base e orienta perguntas abertas, mas não pode prometer conhecimento geral ilimitado ou pesquisa em tempo real.
-- A avaliação de domínio em `/api/mastery` continua usando OpenAI opcionalmente; não é necessária para o Tutor.
+Base: `ATLAS-Academy-v0.9-Laboratorio-Biblioteca.zip`.
 
-### Cadastro e identidade visual
-- Popover de estudante agora tem abas Entrar e Criar conta.
-- Cadastro Supabase Auth com nome, e-mail e senha mínima de oito caracteres, com redirecionamento para o domínio atual e mensagem adequada quando confirmação por e-mail for exigida.
-- Criada nova marca vetorial SVG em `public/atlas-mark.svg`, aplicada na barra lateral e como favicon.
-- Nenhuma credencial ou segredo foi inserido no código.
+Stack identificada: Next.js 15, React 19, TypeScript, Supabase JS 2.50, componentes React em `src/components`, currículo em `src/lib` e API route do Tutor em `src/app/api/tutor/route.ts`.
+
+Limitações encontradas na base:
+- O Tutor local consultava uma lista pequena de palavras-chave, sem recuperar aulas completas.
+- Cadastro e login existiam, mas não havia fluxo de recuperação/redefinição de senha.
+- A Biblioteca tinha 91 itens e já estava agrupada por departamento no componente recebido; precisava ser validada no deployment real.
+- O Laboratório já tinha revisão, cenários e jogos, mas notas, revisões e pontuação dependiam principalmente do localStorage.
+- Havia uma migration 004 para avaliações de domínio, mas a base não continha sincronização genérica para todos os registros do Laboratório.
+- Os cursos tinham aulas classificadas por listas de extensão e avançadas, mas a interface não permitia filtrar claramente os níveis.
+- A documentação de versões anteriores informava contagem de aulas divergente da composição efetiva do currículo.
+
+## Implementações realizadas nesta versão
 
 ### Currículo
-- Acrescentadas 12 aulas avançadas (duas por departamento) e associadas aos cursos existentes.
-- Tópicos: LGPD; direito do consumidor; PIB/produtividade; sistema financeiro/crédito/CET; APIs; bancos relacionais; Guerra Fria/descolonização; recursos estratégicos; legitimidade política; epistemologia social; probabilidade; método científico/desenho experimental.
-- Total recalculado de **88 aulas** no currículo ativo: 40 aulas-base, 18 aulas de extensão e 30 aulas avançadas (incluindo as 12 novas). A contagem anterior de 91 aulas no relatório v0.8 não correspondia à montagem efetiva dos cursos; esta versão registra a contagem executável.
-- Cada aula segue o modelo existente: objetivo, contexto, explicação, aplicação, termos, caso, questão comentada, reflexão e referências.
+- Criado `src/lib/capstone-lessons.ts` com 12 aulas avançadas novas, duas por departamento.
+- Temas: diligência imobiliária e LGPD; política monetária e VPL; redes web e OSINT responsável; historiografia e ordem internacional; epistemologia e vieses; funções matemáticas e análise dimensional.
+- Integradas às trilhas ativas por departamento.
+- Interface do curso agora permite filtrar Fundamentos, Intermediário e Avançado.
+- Contagem calculada a partir das fontes de currículo: **115 aulas únicas** — 20 em Direito e 19 em cada um dos outros cinco departamentos.
 
-## Arquivos alterados
-- `src/components/LearningArcade.tsx` — 30 jogos, filtro inicial por disciplina e navegação filtrada.
-- `src/components/LearningLab.tsx` — abas integradas, teste dinâmico e jogos dentro do laboratório.
-- `src/components/ResourceLibrary.tsx` — seções por disciplina, filtros, classificação de PDFs enviados.
-- `src/app/api/tutor/route.ts` — tutor local sem API externa.
-- `src/components/AtlasDashboard.tsx` — cadastro, novo logo, copy do tutor e associação das novas aulas.
-- `src/lib/advanced-learning.ts` — 12 novas aulas.
-- `src/lib/atlas-study-data.ts` — 12 flashcards e 12 cenários.
-- `src/lib/resources.ts` — 18 recursos novos, total 91.
-- `src/app/globals.css` — estilos da biblioteca, laboratório, cadastro e logo.
-- `public/atlas-mark.svg`, `src/app/layout.tsx`, `.env.example`, `env.example`, `README.md`, `package.json`.
+### Jogos e laboratório
+- Jogos ampliados de 30 para **42 missões únicas**, sete por departamento.
+- Os novos desafios abordam oferta ao consumidor, competências federativas, CET, diversificação, controle de acesso, SQL injection, descolonização, geoeconomia, causalidade, princípio da caridade, probabilidade condicional e energia elétrica.
+- Mantida a integração dos jogos dentro do Laboratório.
+- Pontuações dos jogos passam a ser persistidas localmente e podem sincronizar por conta Supabase.
+- Revisões de flashcards e anotações do caderno podem sincronizar por conta.
+- Resultados de testes dinâmicos são gravados localmente e na tabela de registros quando Supabase está configurado; histórico recente aparece no resultado.
+- Favoritos da Biblioteca podem sincronizar por conta, com fallback local.
 
-## Verificações realizadas
-- Transpilação sintática TypeScript/TSX: 20 arquivos, zero diagnósticos de sintaxe.
-- `npm run validate:content`: aprovado — 30 jogos, 91 recursos, 30 aulas avançadas, 24 cenários, CSS balanceado e tutor sem chamada externa.
-- Teste isolado do endpoint local `/api/tutor`: três perguntas de assuntos diferentes retornaram respostas estruturadas com status 200 e modo `free-local`.
-- Jogos: 30 IDs, 30 únicos, cinco por departamento.
-- Aulas avançadas: 30 IDs na base, todos únicos; 12 novos IDs 17/18 conectados ao currículo.
-- Recursos: 91 IDs, todos únicos.
-- CSS: validar contagem de chaves após as alterações.
-- ZIP será submetido a teste de integridade após compactação.
+### Biblioteca
+- Preservados os 91 recursos do catálogo v0.9 e acrescentados seis cadernos PDF autorais, um por departamento. Total: **97 recursos**.
+- Distribuição verificada: Direito 19; Economia 16; Tecnologia 15; História 15; Filosofia 15; Ciências 17.
+- PDFs em `public/materiais/`: método jurídico; finanças pessoais; computação, segurança e IA; historiografia e geopolítica; filosofia e pensamento crítico; ciências e matemática. Cada caderno tem exemplos, estudo de caso, exercícios, gabarito e referências.
+- Favoritos passam a suportar sincronização por conta, além do armazenamento local.
+- Mantidos os filtros por tipo, busca, agrupamento disciplinar e upload privado de PDF.
 
-## Limitações e dependências externas
-- `npm install --ignore-scripts --no-audit --no-fund` excedeu o limite de execução do ambiente. Não foi possível instalar Next.js, React, Lucide e Supabase. Por isso `npm run typecheck`, `npm run build`, testes de navegador e integração real não puderam ser executados. O `tsc` sem dependências acusa módulos ausentes e não constitui uma validação de build.
-- Cadastro real depende de `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, e-mail/senha habilitado no Supabase e Site URL/Redirect URLs configurados. O código não pode criar a conta sem essa configuração do projeto.
-- Upload de PDFs exige a migration/bucket acadêmico já existente no Supabase. A nova classificação usa o campo `topic` existente, sem migration adicional.
-- Tutor local é gratuito e não consome créditos, mas não é um LLM generativo. Expansão da base de conhecimento continua necessária.
-- Avaliação de domínio assistida por modelo continua opcional e usa `OPENAI_API_KEY`; isso não afeta o Tutor.
-- Jogos, flashcards e anotações do laboratório permanecem no navegador; sincronização completa com Supabase é pendência.
-- Os vídeos são encaminhados para páginas oficiais, playlists e cursos; nem todo item possui player incorporado.
-- Nenhum deploy foi realizado ou confirmado.
+### Tutor
+- O endpoint agora recupera conteúdo de aulas iniciais, intermediárias, avançadas e capstone, além de relacionar recursos da Biblioteca.
+- A resposta apresenta objetivo, explicação, conceitos, estudo de caso, questão, reflexão e fontes quando há correspondência suficiente.
+- Continua sem API paga, sem chave e sem créditos.
+- Limite explícito: é um mecanismo local de recuperação e composição de conteúdo, não um LLM generativo nem uma busca web em tempo real.
 
-## Próximas etapas antes de produção
-1. Instalar dependências em ambiente com acesso ao registry npm e executar `npm run validate:content`, `npm run typecheck` e `npm run build`.
-2. Testar signup/login com o Supabase real, incluindo confirmação de e-mail e URLs de retorno.
-3. Testar os 30 jogos, os testes dinâmicos, a filtragem da biblioteca e upload de PDF em navegador desktop e celular.
-4. Verificar os links de cada recurso e adicionar PDFs de acesso aberto específicos por disciplina quando a instituição disponibilizar arquivos diretos.
-5. Sincronizar resultados, notas e flashcards no Supabase com RLS e políticas verificadas.
-6. Expandir o Tutor local ou oferecer integração opcional com modelo executado localmente pelo estudante, mantendo uma experiência sem cobrança.
+### Conta e persistência
+- Adicionado fluxo de recuperação por e-mail (`resetPasswordForEmail`), atualização de senha (`updateUser`) e saída da conta (`signOut`).
+- Perfil lateral passa a exibir nome/e-mail quando há sessão autenticada.
+- Adicionado helper `src/lib/student-records.ts` para operações autenticadas.
+- Criada migration incremental `005_student_learning_records.sql`, com tabela por usuário, tipos de registro controlados, índice e políticas RLS idempotentes.
+- A migration 005 não altera nem remove as tabelas anteriores. Deve ser aplicada manualmente somente depois de verificar que ainda não foi aplicada.
+- O modo sem Supabase continua funcionando com armazenamento local, mas não sincroniza entre dispositivos.
+
+### Qualidade e entrega
+- Adicionado workflow `.github/workflows/ci.yml` para validação de conteúdo, typecheck e build em `main` e pull requests.
+- Atualizado `README.md`, criado `DEPLOYMENT_CHECKLIST.md` e incrementada versão para `1.0.0`.
+- O pacote é gerado com os arquivos diretamente na raiz do ZIP, pronto para copiar sobre a raiz do repositório.
+
+## Arquivos novos/alterados relevantes
+
+- `src/lib/capstone-lessons.ts` (novo)
+- `public/materiais/*.pdf` (seis cadernos originais por disciplina)
+- `src/lib/student-records.ts` (novo)
+- `supabase/migrations/005_student_learning_records.sql` (novo)
+- `.github/workflows/ci.yml` (novo)
+- `src/components/AtlasDashboard.tsx`
+- `src/components/LearningArcade.tsx`
+- `src/components/LearningLab.tsx`
+- `src/components/ResourceLibrary.tsx`
+- `src/app/api/tutor/route.ts`
+- `src/app/globals.css`
+- `scripts/validate-content.mjs`
+- `scripts/update-atlas.ps1`
+- `ATUALIZAR-ATLAS.bat`
+- `package.json`
+- `README.md`
+
+## Validações executadas neste ambiente
+
+- `node scripts/validate-content.mjs`: aprovado.
+- 22 arquivos TypeScript/TSX transpilados sem erros de sintaxe.
+- Checagem estrutural de tipos com declarações temporárias para dependências externas ausentes: sem erros. Isso não substitui o `npm run typecheck` com as dependências reais.
+- Rota do Tutor exercitada isoladamente com conteúdo real do currículo em seis perguntas, uma por departamento; respostas relevantes foram recuperadas.
+- 42 IDs de jogos únicos; sete por disciplina.
+- 97 IDs de recursos únicos; 15 a 19 por disciplina.
+- Seis PDFs autorais validados com `pdfinfo` e extração de texto (`pdftotext`), três páginas A4 cada.
+- 30 aulas avançadas anteriores únicas.
+- 12 aulas capstone novas únicas, duas por disciplina.
+- 115 IDs de aulas únicos na composição curricular.
+- 24 cenários de prática únicos.
+- Verificação estática de trilhas por nível, recuperação de senha, recuperação do Tutor, ausência de API paga, migration RLS e persistência.
+- Chaves CSS balanceadas.
+- Integridade do ZIP verificada após geração.
+
+## O que não foi possível validar
+
+- `npm install --ignore-scripts --no-audit --no-fund --prefer-offline` excedeu o limite de execução deste ambiente.
+- Sem dependências instaladas, não foi possível executar `npm run typecheck`, `npm run build` ou testes reais no navegador.
+- A integração Supabase não foi executada contra o projeto real; cadastro, reset, Storage, RLS e sincronização dependem das variáveis e da migration 005 no painel Supabase.
+- Não foi possível executar o deploy ou alterar o projeto Vercel diretamente.
+- O workflow de CI foi adicionado para executar essas verificações em GitHub Actions depois do push.
+
+## Próximas ações obrigatórias
+
+1. Copiar todos os arquivos do pacote para a raiz do repositório, preservando `.git` e `.env.local`.
+2. Fazer commit e push para a branch de produção.
+3. Conferir GitHub Actions e corrigir falhas de typecheck/build.
+4. Conferir a configuração do projeto Vercel e o commit efetivamente implantado. O deployment observado ainda mostrava 55 aulas, portanto não considerar publicado antes de atualizar e verificar.
+5. Inspecionar histórico do Supabase e aplicar migration 005 somente se ausente.
+6. Testar cadastro, login, recuperação, upload, jogos, notas, favoritos, revisão e sincronização com duas contas/dispositivos.
+7. Validar a curadoria de links em navegador e revisar fontes específicas que apontam para catálogos/portais em vez de documentos individuais.
+
+## Critério de conclusão
+
+Esta versão representa uma implementação local consolidada, não uma publicação verificada. O projeto só deve ser declarado concluído depois de `validate:content`, typecheck, build, testes funcionais, verificação de RLS e confirmação visual do deployment atualizado.
