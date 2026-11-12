@@ -7,8 +7,14 @@ const unique = (name, values, expected) => {
   checks.push({ name, count: values.length, unique: new Set(values).size, expected, ok: values.length === expected && duplicates.length === 0 });
 };
 
-const arcade = read("src/components/LearningArcade.tsx").split("const departmentShort")[0];
-unique("Jogos e missões", [...arcade.matchAll(/\{id:\"([^\"]+)\"/g)].map((match) => match[1]), 42);
+const arcade = read("src/components/LearningArcade.tsx");
+unique("Territórios de jogos", [...arcade.matchAll(/\{id:\"(law|economy|tech|history|philosophy|science)\",name:/g)].map((match) => match[1]), 6);
+unique("Modalidades de jogo", [...arcade.matchAll(/\{id:\"(wordhunt|investigation|connections|sequence)\",title:/g)].map((match) => match[1]), 4);
+for (const [field, pattern] of [["terms", /terms:\[/g], ["pairs", /pairs:\[\[/g], ["caseTitle", /caseTitle:\"/g], ["sequenceTitle", /sequenceTitle:\"/g]]) {
+  const count = [...arcade.matchAll(pattern)].length;
+  checks.push({ name: `Conteúdo de jogo por território (${field})`, count, expected: 6, ok: count === 6 });
+}
+checks.push({ name: "Persistência local e sincronização de progresso", count: ["localStorage", "loadStudentRecords", "saveStudentRecord", "arcade_score"].filter((token) => arcade.includes(token)).length, expected: 4, ok: ["localStorage", "loadStudentRecords", "saveStudentRecord", "arcade_score"].every((token) => arcade.includes(token)) });
 const resources = read("src/lib/resources.ts");
 unique("Recursos da biblioteca", [...resources.matchAll(/id\s*:\s*\"([^\"]+)\"/g)].map((match) => match[1]), 97);
 const advanced = read("src/lib/advanced-learning.ts");
