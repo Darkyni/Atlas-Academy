@@ -127,3 +127,22 @@ Limitações encontradas na base:
 ## Critério de conclusão
 
 Esta versão representa uma implementação local consolidada, não uma publicação verificada. O projeto só deve ser declarado concluído depois de `validate:content`, typecheck, build, testes funcionais, verificação de RLS e confirmação visual do deployment atualizado.
+
+
+## Upgrade RPG Edition — 12/11/2026
+
+### Implementado nesta entrega local
+- Novo componente `src/components/RpgCommandDeck.tsx`, apresentado em todas as áreas do dashboard.
+- HUD de personagem com nível, patente, XP e barra até o próximo nível.
+- Mapa de progressão com seis territórios, percentuais e navegação para cada departamento.
+- XP derivado das aulas concluídas: 80 XP por aula e bônus de 120 XP por marco de cinco aulas; 600 XP por nível. Como o XP deriva do progresso existente, não pode ser duplicado ao atualizar a página e acompanha a persistência já usada pelas aulas.
+- Nova identidade visual transversal em azul-petróleo, grafite, marfim e dourado, com cartões de territórios, microinterações, adaptação mobile e respeito a `prefers-reduced-motion`.
+- Atualização de versão para 1.1.0 e documentação das regras e limites.
+- Ajuste do validador de conteúdo para os totais efetivos de 42 missões e 97 recursos, que estavam em desacordo com o estado 1.0 documentado.
+
+### Validação e limites
+- ZIP de entrada lido e extraído; projeto original preservado na pasta de trabalho.
+- `node scripts/validate-content.mjs`: verificação inicial encontrou expectativas antigas (30 missões e 91 recursos); o validador foi corrigido para os totais já presentes no projeto.
+- A instalação de dependências excedeu o limite de execução; por isso, `npm run typecheck` e `npm run build` não puderam ser executados nesta sessão.
+- Não houve acesso de escrita ao GitHub, ao Supabase ou à Vercel. Esta é uma entrega local em ZIP, ainda não publicada.
+- XP atual é calculado a partir de aulas concluídas; XP por provas, conquistas avançadas, inventário e missões com estado próprio permanecem como próximas etapas, não são anunciados como prontos.

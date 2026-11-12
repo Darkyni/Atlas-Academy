@@ -1,4 +1,4 @@
-# ATLAS Academy — v1.0.0
+# ATLAS Academy — v1.1.0 — RPG Edition
 
 Academia pessoal multidisciplinar para estudar, conectar ideias e aplicar conhecimento. O projeto utiliza Next.js 15, React 19, TypeScript e Supabase opcional para autenticação e sincronização dos registros do estudante.
 
@@ -105,3 +105,18 @@ OPENAI_MODEL=gpt-4.1-mini
 - Se o deploy mostrar uma versão antiga, confira o commit implantado e faça Redeploy do último commit após corrigir a configuração. Não considere o site atualizado até confirmar a nova implantação e testar a URL publicada.
 
 Consulte `DEPLOYMENT_CHECKLIST.md` e `ATLAS_BUILD_STATUS.md`.
+
+
+## ATLAS RPG Edition — v1.1.0
+
+A interface recebeu uma camada transversal de RPG acadêmico: painel de personagem, nível, patente, experiência e mapa com seis territórios disciplinares. O mapa permite abrir cada trilha diretamente na Academia e exibe o progresso real de aulas concluídas por departamento.
+
+### Regras de progressão atuais
+- 80 XP por aula concluída, contabilizada uma única vez porque a pontuação é derivada dos registros de conclusão existentes.
+- Bônus de 120 XP a cada cinco aulas concluídas.
+- Nível a cada 600 XP; patentes evoluem conforme os níveis.
+- O progresso usa a mesma fonte de conclusão já persistida localmente e sincronizada com Supabase quando a conta e o schema estão configurados. Não foi criada uma tabela nova nem uma migration para esta camada visual.
+- A experiência é uma camada de motivação; não substitui a avaliação de domínio nem declara que assistir a uma aula equivale a dominar o conteúdo.
+
+### Escopo e limitações desta entrega
+A edição RPG adiciona HUD global e mapa de seis territórios na visão geral, com navegação para as trilhas existentes. XP é atualmente baseado em aulas concluídas; pontuação por avaliação, missões temporizadas, inventário cosmético e conquistas específicas por desempenho ainda não estão implementados. O Tutor continua sendo recuperação didática local, não um modelo generativo.
