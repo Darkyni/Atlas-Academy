@@ -8,9 +8,9 @@ const unique = (name, values, expected) => {
 };
 
 const arcade = read("src/components/LearningArcade.tsx").split("const departmentShort")[0];
-unique("Jogos e missões", [...arcade.matchAll(/\{id:\"([^\"]+)\"/g)].map((match) => match[1]), 30);
+unique("Jogos e missões", [...arcade.matchAll(/\{id:\"([^\"]+)\"/g)].map((match) => match[1]), 42);
 const resources = read("src/lib/resources.ts");
-unique("Recursos da biblioteca", [...resources.matchAll(/id\s*:\s*\"([^\"]+)\"/g)].map((match) => match[1]), 91);
+unique("Recursos da biblioteca", [...resources.matchAll(/id\s*:\s*\"([^\"]+)\"/g)].map((match) => match[1]), 97);
 const advanced = read("src/lib/advanced-learning.ts");
 unique("Aulas avançadas catalogadas", [...advanced.matchAll(/id:\"([a-z]+-\d+)\"/g)].map((match) => match[1]), 30);
 const study = read("src/lib/atlas-study-data.ts");
