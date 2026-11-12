@@ -127,7 +127,7 @@ export default function MasteryAssessment(props: Props) {
   }
 
   return <section className="mastery-assessment" aria-labelledby="mastery-title">
-    <div className="mastery-heading"><div><div className="eyebrow">AVALIAÇÃO DE DOMÍNIO · 5 COMPETÊNCIAS</div><h2 id="mastery-title">Você consegue usar o que aprendeu?</h2><p>Responda sem copiar a aula. A avaliação assistida por IA examina evidências específicas em cada competência. O resultado é formativo, não uma certificação definitiva.</p></div><div className="mastery-emblem"><BrainCircuit size={24}/></div></div>
+    <div className="mastery-heading"><div><div className="eyebrow">PROVA DE MAESTRIA · 5 ATRIBUTOS INTELECTUAIS</div><h2 id="mastery-title">Demonstre o que seu personagem realmente domina.</h2><p>Responda sem copiar a aula. A avaliação assistida por IA examina evidências específicas em cada competência. O resultado é formativo, não uma certificação definitiva.</p></div><div className="mastery-emblem"><BrainCircuit size={24}/></div></div>
     <div className="mastery-context"><strong>Objetivo da aula</strong><p>{props.objective}</p><strong>Desafio de aplicação</strong><p>{props.caseStudy}</p><strong>Pergunta para reflexão</strong><p>{props.reflection}</p></div>
     <div className="mastery-overview"><span>{completed}/5 respostas preparadas</span><div><i style={{ width: `${completed / 5 * 100}%` }}/></div><small>Escreva pelo menos 40 caracteres por dimensão. Prefira respostas fundamentadas a textos longos sem argumento.</small></div>
     <div className="mastery-prompts">{dimensions.map((item, index) => <label className="mastery-prompt" key={item.id}>

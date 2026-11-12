@@ -17,9 +17,8 @@ import CourseAssessment from "@/components/CourseAssessment";
 import MasteryAssessment from "@/components/MasteryAssessment";
 import ResourceLibrary from "@/components/ResourceLibrary";
 import LearningLab from "@/components/LearningLab";
-import KnowledgeMap from "@/components/KnowledgeMap";
 import LearningArcade from "@/components/LearningArcade";
-import RpgCommandDeck from "@/components/RpgCommandDeck";
+import { RpgCommandDeck, RpgWorldMap, RpgQuestBoard, RpgAchievementHall } from "@/components/RpgProgression";
 import { advancedLessons } from "@/lib/advanced-learning";
 import { capstoneLessons } from "@/lib/capstone-lessons";
 
@@ -308,13 +307,13 @@ export default function AtlasDashboard() {
 
 
   const nav: { label: NavKey; icon: typeof Compass; group: string }[] = [
-    { label: "Visão geral", icon: Compass, group: "ESPAÇO DE ESTUDO" },
-    { label: "Academia", icon: GraduationCap, group: "ESPAÇO DE ESTUDO" },
-    { label: "Plano de estudos", icon: CalendarDays, group: "ESPAÇO DE ESTUDO" },
-    { label: "Biblioteca", icon: Library, group: "CONHECIMENTO" },
-    { label: "Laboratório", icon: Brain, group: "CONHECIMENTO" },
-    { label: "Desafios", icon: Sparkles, group: "CONHECIMENTO" },
-    { label: "Tutor IA", icon: MessageSquareText, group: "CONHECIMENTO" }
+    { label: "Visão geral", icon: Compass, group: "A JORNADA" },
+    { label: "Academia", icon: GraduationCap, group: "A JORNADA" },
+    { label: "Plano de estudos", icon: CalendarDays, group: "A JORNADA" },
+    { label: "Biblioteca", icon: Library, group: "ARSENAL DO SABER" },
+    { label: "Laboratório", icon: Brain, group: "ARSENAL DO SABER" },
+    { label: "Desafios", icon: Sparkles, group: "ARSENAL DO SABER" },
+    { label: "Tutor IA", icon: MessageSquareText, group: "ARSENAL DO SABER" }
   ];
 
   return (
@@ -325,7 +324,7 @@ export default function AtlasDashboard() {
           <div><strong>ATLAS</strong><span>ACADEMY</span></div>
           <button className="icon-button close-mobile" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X size={18}/></button>
         </div>
-        <div className="workspace-label">AMBIENTE PESSOAL</div>
+        <div className="workspace-label">GUILDA PESSOAL · CAMPANHA ATIVA</div>
         <nav className="main-nav" aria-label="Navegação principal">
           {nav.map((item, index) => {
             const Icon = item.icon;
@@ -368,18 +367,12 @@ export default function AtlasDashboard() {
           </div>
         </header>
 
+        <div className="rpg-hud-wrap"><RpgCommandDeck completed={completedAllCount} total={totalLessonsCount}/></div>
         <div className="content">
-          <RpgCommandDeck
-            completed={completedAllCount}
-            total={totalLessonsCount}
-            branches={allCourses.map(course => ({ id: course.id, title: course.department, completed: course.lessons.filter(lesson => completedLessons.includes(lesson.id)).length, total: course.lessons.length, color: ({ direito: "#c8a66a", "economia-financas": "#78a995", "tecnologia-ia": "#75a8c9", "historia-geopolitica": "#c58b68", "filosofia-pensamento": "#a58bc8", "ciencias-matematica": "#8da7b9" } as Record<string, string>)[course.id] ?? "#c8a66a" }))}
-            onOpenBranch={(id) => { openCourse(id); setActive("Academia"); }}
-            showBranches={active === "Visão geral" && !selectedLesson}
-          />
           <div className="content-stage" key={`${active}-${selectedCourseId}-${selectedLessonId ?? "course-index"}`}>
           {active === "Visão geral" && <>
             <section className="welcome-row">
-              <div className="welcome-copy"><div className="eyebrow"><span className="eyebrow-pulse"/> SUA JORNADA DE APRENDIZAGEM</div><h1>Amplie sua visão.<br/><em>Domine o conhecimento.</em></h1><p>Uma academia pessoal para compreender ideias, conectar disciplinas e transformar conhecimento em capacidade real.</p><div className="welcome-actions"><button className="button button-dark" onClick={() => {setActive("Academia");setSelectedCourseId(null);setSelectedLessonId(null);}}>Explorar a academia <ArrowRight size={16}/></button><button className="button button-outline" onClick={() => setActive("Laboratório")}><Brain size={16}/> Revisar conhecimentos</button><button className="button button-outline" onClick={() => setActive("Desafios")}><Sparkles size={16}/> Jogar e praticar</button></div></div>
+              <div className="welcome-copy"><div className="eyebrow"><span className="eyebrow-pulse"/> CRÔNICAS DO CONHECIMENTO · SUA CAMPANHA</div><h1>O conhecimento é<br/><em>sua maior conquista.</em></h1><p>Explore seis territórios, desenvolva habilidades intelectuais e enfrente desafios que transformam estudo em domínio real.</p><div className="welcome-actions"><button className="button button-dark" onClick={() => {setActive("Academia");setSelectedCourseId(null);setSelectedLessonId(null);}}>Explorar a academia <ArrowRight size={16}/></button><button className="button button-outline" onClick={() => setActive("Laboratório")}><Brain size={16}/> Revisar conhecimentos</button><button className="button button-outline" onClick={() => setActive("Desafios")}><Sparkles size={16}/> Jogar e praticar</button></div></div>
               <div className="atlas-blueprint-visual" aria-hidden="true">
                 <div className="blueprint-topline"><span>ATLAS / KNOWLEDGE SYSTEM</span><span>FIG. 001</span></div>
                 <svg viewBox="0 0 380 245" role="presentation">
@@ -396,8 +389,10 @@ export default function AtlasDashboard() {
               </div>
             </section>
 
+            <RpgQuestBoard completed={completedAllCount} total={totalLessonsCount} onAcademy={() => {setActive("Academia");setSelectedCourseId(null);setSelectedLessonId(null);}} onLab={() => setActive("Laboratório")} onChallenges={() => setActive("Desafios")}/>
+
             <section className="daily-card">
-              <div className="daily-copy"><div className="eyebrow light">SUA PRÓXIMA SESSÃO · {nextSchedule.subject.toUpperCase()}</div><h2>{nextSchedule.lesson}</h2><p>Continue sua trilha interdisciplinar com uma aula, uma questão comentada e uma aplicação prática.</p><div className="daily-meta"><span><Clock3 size={15}/> {nextSchedule.time}</span><span><BookOpen size={15}/> Estudo orientado</span></div></div>
+              <div className="daily-copy"><div className="eyebrow light">MISSÃO PRINCIPAL · {nextSchedule.subject.toUpperCase()}</div><h2>{nextSchedule.lesson}</h2><p>Estude o conteúdo, teste sua compreensão e conclua a missão somente depois de demonstrar que entendeu.</p><div className="daily-meta"><span><Clock3 size={15}/> {nextSchedule.time}</span><span><BookOpen size={15}/> Estudo orientado</span></div></div>
               <div className="daily-action"><div className="session-index">{nextSchedule.day} <span>·</span> PRÓXIMA AULA</div><button className="button button-light" onClick={() => {setActive("Academia");openCourse(nextSchedule.courseId);openLesson(nextSchedule.lessonId);}}>Começar aula <ArrowRight size={16}/></button></div>
             </section>
 
@@ -408,7 +403,8 @@ export default function AtlasDashboard() {
             </section>
 
             <section className="section-block">
-              <KnowledgeMap subjects={subjects} onSelect={(id) => { openCourse(id); setActive("Academia"); }}/>
+              <RpgWorldMap departments={allCourses.map(course => ({id:course.id,title:course.title,desc:course.description,lessons:course.lessons}))} completedIds={completedLessons} onSelect={(id) => { openCourse(id); setActive("Academia"); }}/>
+              <RpgAchievementHall completed={completedAllCount}/>
             </section>
 
             <section className="section-block lower-grid">
@@ -475,7 +471,7 @@ export default function AtlasDashboard() {
 
           {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O Tutor ATLAS funciona no modo gratuito local: usa uma base didática incorporada ao projeto, sem chave de API, cobrança ou créditos externos.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">GRATUITO · SEM API</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><label className="tutor-area-label">Área de aprofundamento<select value={tutorArea} onChange={event=>setTutorArea(event.target.value)}><option>Interdisciplinar</option><option>Direito e instituições</option><option>Economia e Finanças</option><option>Tecnologia e Inteligência Artificial</option><option>História e Geopolítica</option><option>Filosofia e Pensamento Crítico</option><option>Ciências e Matemática</option></select></label><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Base didática local; confirme temas complexos nas fontes da Biblioteca.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
           </div>
-          <footer className="footer"><span>ATLAS ACADEMY</span><span>VERSÃO 1.1.0 RPG EDITION · CONHECIMENTO EM CONSTRUÇÃO · 2026</span></footer>
+          <footer className="footer"><span>ATLAS ACADEMY</span><span>RPG LEARNING WORLD · CONHECIMENTO EM EVOLUÇÃO · 2026</span></footer>
         </div>
       </section>
     </main>
