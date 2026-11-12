@@ -16,8 +16,12 @@ unique("Aulas avançadas catalogadas", [...advanced.matchAll(/id:\"([a-z]+-\d+)\
 const study = read("src/lib/atlas-study-data.ts");
 const scenarios = [...study.matchAll(/\{id:\"(case-[^\"]+)\"/g)].map((match) => match[1]);
 unique("Cenários de prática", scenarios, 24);
-const css = read("src/app/globals.css");
-checks.push({ name: "Chaves CSS balanceadas", count: css.split("{").length - 1, expected: css.split("}").length - 1, ok: css.split("{").length === css.split("}").length });
+for (const path of ["src/app/globals.css", "src/app/rpg-world.css"]) {
+  const css = read(path);
+  checks.push({ name: `Chaves CSS balanceadas (${path})`, count: css.split("{").length - 1, expected: css.split("}").length - 1, ok: css.split("{").length === css.split("}").length });
+}
+const rpg = read("src/components/RpgProgression.tsx");
+checks.push({ name: "Sistema RPG integrado", count: ["RpgCommandDeck", "RpgWorldMap", "RpgQuestBoard", "EXPERIÊNCIA DE DOMÍNIO"].filter((token) => rpg.includes(token)).length, expected: 4, ok: ["RpgCommandDeck", "RpgWorldMap", "RpgQuestBoard", "EXPERIÊNCIA DE DOMÍNIO"].every((token) => rpg.includes(token)) });
 const tutor = read("src/app/api/tutor/route.ts");
 checks.push({ name: "Tutor sem chamada de API externa", count: tutor.includes("api.openai.com") || tutor.includes("generativelanguage.googleapis.com") ? 1 : 0, expected: 0, ok: !tutor.includes("api.openai.com") && !tutor.includes("generativelanguage.googleapis.com") });
 
