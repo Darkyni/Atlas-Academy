@@ -19,6 +19,7 @@ import ResourceLibrary from "@/components/ResourceLibrary";
 import LearningLab from "@/components/LearningLab";
 import KnowledgeMap from "@/components/KnowledgeMap";
 import LearningArcade from "@/components/LearningArcade";
+import RpgCommandDeck from "@/components/RpgCommandDeck";
 import { advancedLessons } from "@/lib/advanced-learning";
 import { capstoneLessons } from "@/lib/capstone-lessons";
 
@@ -368,6 +369,13 @@ export default function AtlasDashboard() {
         </header>
 
         <div className="content">
+          <RpgCommandDeck
+            completed={completedAllCount}
+            total={totalLessonsCount}
+            branches={allCourses.map(course => ({ id: course.id, title: course.department, completed: course.lessons.filter(lesson => completedLessons.includes(lesson.id)).length, total: course.lessons.length, color: ({ direito: "#c8a66a", "economia-financas": "#78a995", "tecnologia-ia": "#75a8c9", "historia-geopolitica": "#c58b68", "filosofia-pensamento": "#a58bc8", "ciencias-matematica": "#8da7b9" } as Record<string, string>)[course.id] ?? "#c8a66a" }))}
+            onOpenBranch={(id) => { openCourse(id); setActive("Academia"); }}
+            showBranches={active === "Visão geral" && !selectedLesson}
+          />
           <div className="content-stage" key={`${active}-${selectedCourseId}-${selectedLessonId ?? "course-index"}`}>
           {active === "Visão geral" && <>
             <section className="welcome-row">
@@ -467,7 +475,7 @@ export default function AtlasDashboard() {
 
           {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O Tutor ATLAS funciona no modo gratuito local: usa uma base didática incorporada ao projeto, sem chave de API, cobrança ou créditos externos.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">GRATUITO · SEM API</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><label className="tutor-area-label">Área de aprofundamento<select value={tutorArea} onChange={event=>setTutorArea(event.target.value)}><option>Interdisciplinar</option><option>Direito e instituições</option><option>Economia e Finanças</option><option>Tecnologia e Inteligência Artificial</option><option>História e Geopolítica</option><option>Filosofia e Pensamento Crítico</option><option>Ciências e Matemática</option></select></label><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Base didática local; confirme temas complexos nas fontes da Biblioteca.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
           </div>
-          <footer className="footer"><span>ATLAS ACADEMY</span><span>VERSÃO 1.0.0 · CONHECIMENTO EM CONSTRUÇÃO · 2026</span></footer>
+          <footer className="footer"><span>ATLAS ACADEMY</span><span>VERSÃO 1.1.0 RPG EDITION · CONHECIMENTO EM CONSTRUÇÃO · 2026</span></footer>
         </div>
       </section>
     </main>
