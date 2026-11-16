@@ -1,4 +1,4 @@
-# ATLAS Academy — RPG Learning World
+# ATLAS Academy — Knowledge & Operations
 
 Academia pessoal multidisciplinar para estudar, conectar ideias e aplicar conhecimento. O projeto utiliza Next.js 15, React 19, TypeScript e Supabase opcional para autenticação e sincronização dos registros do estudante.
 
@@ -27,6 +27,15 @@ A Biblioteca possui **97 recursos**, agrupados por departamento e filtráveis po
 
 O estudante pode enviar PDFs próprios para um bucket privado do Supabase. Isso exige autenticação, o bucket `atlas-library` e a migration acadêmica já existente.
 
+### Campo, autonomia e engenharia aplicada
+
+A navegação **Campo & Engenharia** reúne três trilhas novas, com 24 módulos progressivos (oito por trilha):
+- **ATLAS SURVIVAL:** preparação para 72 horas, água, alimentação, abrigo, higiene, primeiros socorros e resposta a apagões e eventos extremos.
+- **ATLAS HOME LAB:** diagnóstico, hidráulica, segurança elétrica, construção/marcenaria e climatização.
+- **ATLAS FIELD ENGINEERING:** pensamento de engenharia, eletrônica de baixa tensão, sensores, automação, energia solar e diagnóstico mecânico.
+
+Inclui 24 módulos progressivos (oito por trilha), missões práticas marcáveis, checklist pessoal e seis modos de simulação: World Simulator, Survival 72H, Diagnostic, Crisis Command, Engineering Challenges e Knowledge Transfer. Os conteúdos delimitam explicitamente quando é necessário procurar profissionais habilitados e não ensinam intervenções perigosas em rede elétrica, gás, sistemas pressurizados, refrigerantes ou baterias de alta energia. O Centro de Operações acrescenta dimensionador de água, checklist de prontidão, matriz de risco, diário de manutenção, puzzle investigativo de sequência de crise e calculadora educacional da Lei de Ohm. Os registros ficam no navegador e podem sincronizar por conta autenticada após a migration incremental 006; sem ela, o salvamento local continua disponível.
+
 ### Laboratório e jogos
 
 - **42 missões educativas**, sete por disciplina, com casos, cálculos e verificações conceituais.
@@ -46,8 +55,11 @@ O Tutor utiliza recuperação de conteúdo do currículo e da Biblioteca, sem AP
 - Cadastro e login por e-mail/senha via Supabase Auth.
 - Fluxo de recuperação e redefinição de senha.
 - Progresso de aulas sincronizado na tabela `student_lesson_progress`.
-- Migration incremental `005_student_learning_records.sql` para sincronizar revisões, notas, resultados dos jogos, testes e favoritos da Biblioteca.
+- Migrations incrementais `005_student_learning_records.sql` e `006_field_operations_records.sql` para registros acadêmicos, jogos, favoritos e Centro de Operações. A 006 amplia a constraint de tipos de registro; deve ser revisada e executada somente se ainda estiver pendente.
 - Políticas RLS limitam registros ao usuário autenticado.
+- A avaliação por IA exige sessão Supabase válida, token Bearer, limites de entrada e validação da resposta; há uma limitação inicial de cinco solicitações por minuto por usuário e por instância do servidor. Em produção distribuída, configure também um limitador compartilhado (Redis/serviço equivalente) para impor o limite globalmente.
+- Cabeçalhos HTTP de segurança reduzem exposição a framing, MIME sniffing e permissões desnecessárias.
+- O progresso de aulas no armazenamento local é separado por ID de usuário para evitar misturar sessões de contas diferentes no mesmo navegador.
 
 Sem variáveis do Supabase, o conteúdo acadêmico permanece acessível em modo de demonstração e os registros ficam no navegador. Cadastro, upload e sincronização entre dispositivos exigem Supabase configurado e migrations correspondentes executadas.
 
@@ -65,7 +77,7 @@ Acesse `http://localhost:3000`.
 ## Verificações
 
 ```bash
-npm run validate:content
+npm run validate:all
 npm run typecheck
 npm run build
 ```
@@ -79,9 +91,9 @@ O workflow `.github/workflows/ci.yml` executa validação de conteúdo, verifica
 3. Em Authentication → URL Configuration, configure o Site URL e Redirect URLs para o domínio local e o domínio Vercel.
 4. Configure `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` nas variáveis de ambiente locais e da Vercel.
 5. Confirme que as migrations anteriores usadas pelo projeto já foram aplicadas. **Não execute novamente migrations antigas.**
-6. Inspecione o schema e o histórico de migrations; depois execute somente `supabase/migrations/005_student_learning_records.sql` no SQL Editor, caso ainda não tenha sido aplicada.
+6. Inspecione o schema e o histórico de migrations; depois execute somente as migrations incrementais ainda pendentes. A migration `006_field_operations_records.sql` amplia o tipo de registro permitido para o Centro de Operações. Inspecione o histórico antes de executá-la; não reexecute migrations antigas.
 
-A migration 005 cria apenas `student_learning_records`, com RLS e políticas por usuário. Ela não apaga nem altera as tabelas anteriores. Não coloque `service_role` no navegador nem no repositório.
+A migration 005 cria `student_learning_records`, com RLS e políticas por usuário; a 006 amplia os tipos de registro aceitos sem apagar registros nem remover políticas existentes. Não coloque `service_role` no navegador nem no repositório.
 
 ### Variáveis de ambiente
 
@@ -98,7 +110,7 @@ OPENAI_MODEL=gpt-4.1-mini
 
 ## Atualizar o GitHub e a Vercel
 
-- Para copiar tudo em lote no Windows, extraia o ZIP e dê dois cliques em `ATUALIZAR-ATLAS.bat`. Ele abre o assistente, pede o caminho da pasta local clonada e chama `scripts/update-atlas.ps1`. O script valida a pasta `.git` e preserva `.git`, `.env.local`, `.env`, `node_modules`, `.next` e `.vercel`.
+- Para copiar tudo em lote no Windows, extraia o ZIP e dê dois cliques em `ATUALIZAR-ATLAS.bat`. Ele pede o caminho da pasta local clonada, verifica se é um repositório Git, avisa sobre alterações não commitadas, cria backup dos arquivos que serão substituídos e preserva `.git`, arquivos `.env*` locais (exceto `.env.example`), `node_modules`, `.next` e `.vercel`. O script não faz commit, push ou deploy.
 - Alternativamente, copie o **conteúdo da raiz deste pacote** para a raiz do repositório clonado.
 - Preserve a pasta `.git` local e o arquivo `.env.local`; não envie segredos ao GitHub.
 - Inclua também os arquivos ocultos, especialmente `.github/workflows/ci.yml`.
@@ -106,4 +118,4 @@ OPENAI_MODEL=gpt-4.1-mini
 - No painel da Vercel, confirme o repositório conectado, Production Branch, Root Directory (`.`), último commit e resultado do build.
 - Se o deploy mostrar uma versão antiga, confira o commit implantado e faça Redeploy do último commit após corrigir a configuração. Não considere o site atualizado até confirmar a nova implantação e testar a URL publicada.
 
-Consulte `DEPLOYMENT_CHECKLIST.md` e `ATLAS_BUILD_STATUS.md`.
+Consulte `DEPLOYMENT_CHECKLIST.md`, `ATLAS_BUILD_STATUS.md` e `ATLAS_FIELD_SYSTEMS.md`.

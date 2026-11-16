@@ -2,13 +2,18 @@
   "name": "atlas-academy",
   "version": "1.0.0",
   "private": true,
-  "engines": { "node": ">=20.9.0" },
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "validate:content": "node scripts/validate-content.mjs"
+    "validate:content": "node scripts/validate-content.mjs",
+    "validate:security": "node scripts/validate-security.mjs",
+    "validate:all": "npm run validate:content && npm run validate:security && npm run validate:resources",
+    "validate:resources": "node scripts/validate-resources.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
