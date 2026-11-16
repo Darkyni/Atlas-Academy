@@ -18,6 +18,7 @@ import MasteryAssessment from "@/components/MasteryAssessment";
 import ResourceLibrary from "@/components/ResourceLibrary";
 import LearningLab from "@/components/LearningLab";
 import LearningArcade from "@/components/LearningArcade";
+import PracticalAcademy from "@/components/PracticalAcademy";
 import { RpgCommandDeck, RpgWorldMap, RpgQuestBoard, RpgAchievementHall } from "@/components/RpgProgression";
 import { advancedLessons } from "@/lib/advanced-learning";
 import { capstoneLessons } from "@/lib/capstone-lessons";
@@ -81,7 +82,7 @@ const schedule = [
   { day: "SÁB", subject: "Ciências e matemática", lesson: "Proporções e porcentagens", time: "45 min", courseId: "ciencias-matematica", lessonId: "cie-01" }
 ];
 
-type NavKey = "Visão geral" | "Academia" | "Plano de estudos" | "Biblioteca" | "Laboratório" | "Desafios" | "Tutor IA";
+type NavKey = "Visão geral" | "Academia" | "Plano de estudos" | "Biblioteca" | "Laboratório" | "Desafios" | "Campo & Engenharia" | "Tutor IA";
 
 export default function AtlasDashboard() {
   const [active, setActive] = useState<NavKey>("Visão geral");
@@ -100,12 +101,13 @@ export default function AtlasDashboard() {
   const [authMessage, setAuthMessage] = useState("");
   const [studentEmail, setStudentEmail] = useState<string | null>(null);
   const [studentName, setStudentName] = useState<string | null>(null);
+  const [studentId, setStudentId] = useState<string | null>(null);
   const [courseLevel, setCourseLevel] = useState<"Todos" | "Iniciante" | "Intermediário" | "Avançado">("Todos");
   const [showAuth, setShowAuth] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
-  const [progressLoaded, setProgressLoaded] = useState(false);
+  const [progressLoadedFor, setProgressLoadedFor] = useState<string | null>(null);
   const [quizChoice, setQuizChoice] = useState<number | null>(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const selectedCourse = allCourses.find(course => course.id === selectedCourseId) ?? allCourses[0];
@@ -122,10 +124,12 @@ export default function AtlasDashboard() {
     void supabase.auth.getUser().then(({ data }) => {
       setStudentEmail(data.user?.email ?? null);
       setStudentName((data.user?.user_metadata?.full_name as string | undefined) ?? null);
+      setStudentId(data.user?.id ?? null);
     });
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       setStudentEmail(session?.user?.email ?? null);
       setStudentName((session?.user?.user_metadata?.full_name as string | undefined) ?? null);
+      setStudentId(session?.user?.id ?? null);
       if (event === "PASSWORD_RECOVERY") {
         setShowAuth(true);
         setAuthMode("update");
@@ -137,16 +141,20 @@ export default function AtlasDashboard() {
 
   useEffect(() => {
     let cancelled = false;
+    const progressStorageKey = `atlas-law-completed-lessons:${studentId ?? "guest"}`;
     async function loadProgress() {
       let savedIds: string[] = [];
       try {
-        const saved = window.localStorage.getItem("atlas-law-completed-lessons");
-        if (saved) savedIds = JSON.parse(saved);
+        const saved = window.localStorage.getItem(progressStorageKey) ?? (!studentId ? window.localStorage.getItem("atlas-law-completed-lessons") : null);
+        if (saved) {
+          const parsed: unknown = JSON.parse(saved);
+          if (Array.isArray(parsed)) savedIds = parsed.filter((id): id is string => typeof id === "string" && id.length <= 180);
+        }
       } catch { /* armazenamento local indisponível */ }
-      if (supabase) {
+      if (supabase && studentId) {
         try {
           const { data: auth } = await supabase.auth.getUser();
-          if (auth.user) {
+          if (auth.user?.id === studentId) {
             const { data, error } = await supabase.from("student_lesson_progress")
               .select("lesson_id").eq("user_id", auth.user.id).eq("completed", true);
             if (!error) {
@@ -167,18 +175,20 @@ export default function AtlasDashboard() {
       }
       if (!cancelled) {
         setCompletedLessons(savedIds);
-        setProgressLoaded(true);
+        setProgressLoadedFor(studentId ?? "guest");
       }
     }
     void loadProgress();
     return () => { cancelled = true; };
-  }, []);
+  }, [studentId]);
 
   useEffect(() => {
-    if (!progressLoaded) return;
-    try { window.localStorage.setItem("atlas-law-completed-lessons", JSON.stringify(completedLessons)); }
+    const ownerKey = studentId ?? "guest";
+    if (progressLoadedFor !== ownerKey) return;
+    const progressStorageKey = `atlas-law-completed-lessons:${ownerKey}`;
+    try { window.localStorage.setItem(progressStorageKey, JSON.stringify(completedLessons)); }
     catch { /* armazenamento local indisponível */ }
-  }, [completedLessons, progressLoaded]);
+  }, [completedLessons, progressLoadedFor, studentId]);
 
   function openCourse(id: string) {
     setCourseLevel("Todos");
@@ -313,11 +323,12 @@ export default function AtlasDashboard() {
     { label: "Biblioteca", icon: Library, group: "ARSENAL DO SABER" },
     { label: "Laboratório", icon: Brain, group: "ARSENAL DO SABER" },
     { label: "Desafios", icon: Sparkles, group: "ARSENAL DO SABER" },
+    { label: "Campo & Engenharia", icon: Shield, group: "ARSENAL DO SABER" },
     { label: "Tutor IA", icon: MessageSquareText, group: "ARSENAL DO SABER" }
   ];
 
   return (
-    <main className="app-shell">
+    <main id="main-content" className="app-shell">
       <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
         <div className="brand">
           <div className="brand-mark"><img src="/atlas-mark.svg" alt="" width="42" height="42"/></div>
@@ -468,6 +479,8 @@ export default function AtlasDashboard() {
           {active === "Laboratório" && <LearningLab/>}
 
           {active === "Desafios" && <LearningArcade/>}
+
+          {active === "Campo & Engenharia" && <PracticalAcademy/>}
 
           {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O Tutor ATLAS funciona no modo gratuito local: usa uma base didática incorporada ao projeto, sem chave de API, cobrança ou créditos externos.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">GRATUITO · SEM API</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><label className="tutor-area-label">Área de aprofundamento<select value={tutorArea} onChange={event=>setTutorArea(event.target.value)}><option>Interdisciplinar</option><option>Direito e instituições</option><option>Economia e Finanças</option><option>Tecnologia e Inteligência Artificial</option><option>História e Geopolítica</option><option>Filosofia e Pensamento Crítico</option><option>Ciências e Matemática</option></select></label><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Base didática local; confirme temas complexos nas fontes da Biblioteca.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
           </div>

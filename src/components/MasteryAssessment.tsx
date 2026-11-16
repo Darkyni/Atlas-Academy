@@ -91,7 +91,11 @@ export default function MasteryAssessment(props: Props) {
     setBusy(true); setMessage(""); setSaved(false);
     try { localStorage.setItem(storageKey, JSON.stringify({ responses, confidence, evaluation: null, evaluatedAt: null, history })); } catch { /* mantém as respostas na tela mesmo sem armazenamento */ }
     try {
-      const response = await fetch("/api/mastery", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ course: props.courseTitle, lesson: props.lessonTitle, objective: props.objective, context: props.lessonContext, responses }) });
+      if (!supabase) throw new Error("A avaliação por IA exige uma conta ATLAS configurada. Você ainda pode salvar seu rascunho neste navegador.");
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (sessionError || !accessToken) throw new Error("Entre na sua conta ATLAS para solicitar a avaliação. Seu rascunho foi preservado.");
+      const response = await fetch("/api/mastery", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ course: props.courseTitle, lesson: props.lessonTitle, objective: props.objective, context: props.lessonContext, responses }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Não foi possível avaliar suas respostas.");
       const nextEvaluation = data.evaluation as Evaluation;
