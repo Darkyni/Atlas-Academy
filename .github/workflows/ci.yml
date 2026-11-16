@@ -20,6 +20,10 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Validate academic content
         run: npm run validate:content
+      - name: Validate security boundaries
+        run: npm run validate:security
+      - name: Validate resource destinations
+        run: npm run validate:resources
       - name: Type check
         run: npm run typecheck
       - name: Production build
