@@ -31,6 +31,15 @@ checks.push({ name: "Sistema RPG integrado", count: ["RpgCommandDeck", "RpgWorld
 const tutor = read("src/app/api/tutor/route.ts");
 checks.push({ name: "Tutor sem chamada de API externa", count: tutor.includes("api.openai.com") || tutor.includes("generativelanguage.googleapis.com") ? 1 : 0, expected: 0, ok: !tutor.includes("api.openai.com") && !tutor.includes("generativelanguage.googleapis.com") });
 
+
+const field = read("src/components/PracticalAcademy.tsx");
+unique("Módulos Campo & Engenharia", [...field.matchAll(/id:\s*"(surv-[a-z0-9-]+|home-[a-z0-9-]+|eng-[a-z0-9-]+)"/g)].map((match) => match[1]), 24);
+const operations = read("src/components/FieldOperationsCenter.tsx");
+const operationFeatures = ["dimensionador", "Matriz de probabilidade", "Diário de inspeção", "Bancada de Lei de Ohm", "Reconstrua a resposta segura", "localStorage", "saveStudentRecord"];
+checks.push({ name: "Centro de Operações: ferramentas e persistência", count: operationFeatures.filter((token) => operations.toLowerCase().includes(token.toLowerCase())).length, expected: operationFeatures.length, ok: operationFeatures.every((token) => operations.toLowerCase().includes(token.toLowerCase())) });
+const migration = read("supabase/migrations/006_field_operations_records.sql");
+checks.push({ name: "Migration incremental de registros de campo", count: migration.includes("'field_ops'") && migration.includes("check (record_type in") ? 1 : 0, expected: 1, ok: migration.includes("'field_ops'") && migration.includes("check (record_type in") });
+
 for (const item of checks) console.log(`${item.ok ? "PASS" : "FAIL"} ${item.name}: ${item.count} / esperado ${item.expected}`);
 if (checks.some((item) => !item.ok)) process.exit(1);
 console.log("Validação estática de conteúdo concluída.");
