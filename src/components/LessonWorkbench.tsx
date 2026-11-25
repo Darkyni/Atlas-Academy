@@ -1,4 +1,6 @@
 "use client";
+
+import { getAtlasStorageKey } from "@/lib/atlas-storage";
 import { useEffect, useState } from "react";
 import { BookOpenCheck, Brain, Check, ClipboardCheck, Save } from "lucide-react";
 
@@ -8,9 +10,9 @@ const steps=[{id:"theory",label:"Estudei a explicação teórica"},{id:"case",la
 export default function LessonWorkbench({lessonId,reflectionPrompt,casePrompt}:Props){
  const [state,setState]=useState<State>({steps:[],note:"",confidence:""});
  const [saved,setSaved]=useState(false);
- useEffect(()=>{try{const raw=localStorage.getItem(`atlas-workbench-${lessonId}`);if(raw)setState(JSON.parse(raw));else setState({steps:[],note:"",confidence:""});}catch{setState({steps:[],note:"",confidence:""});}setSaved(false);},[lessonId]);
+ useEffect(()=>{try{const raw=localStorage.getItem(getAtlasStorageKey(`atlas-workbench-${lessonId}`));if(raw)setState(JSON.parse(raw));else setState({steps:[],note:"",confidence:""});}catch{setState({steps:[],note:"",confidence:""});}setSaved(false);},[lessonId]);
  function update(next:State){setState(next);setSaved(false);}
- function save(){try{localStorage.setItem(`atlas-workbench-${lessonId}`,JSON.stringify(state));setSaved(true);}catch{setSaved(false);}}
+ function save(){try{localStorage.setItem(getAtlasStorageKey(`atlas-workbench-${lessonId}`),JSON.stringify(state));setSaved(true);}catch{setSaved(false);}}
  const done=state.steps.length;
  return <section className="lesson-workbench">
   <div className="eyebrow">OFICINA DE APRENDIZAGEM · SUA SESSÃO</div><h2>Transforme leitura em domínio</h2>

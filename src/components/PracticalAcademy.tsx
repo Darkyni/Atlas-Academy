@@ -1,5 +1,7 @@
 "use client";
 
+import { getAtlasStorageKey } from "@/lib/atlas-storage";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   ShieldCheck, House, Cpu, PackageCheck, AlertTriangle, Compass, ClipboardList, CheckCircle2,
@@ -194,7 +196,7 @@ export default function PracticalAcademy() {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE);
+      const raw = localStorage.getItem(getAtlasStorageKey(STORAGE));
       if (raw) {
         const data = JSON.parse(raw) as { completed?: string[]; checklist?: string[] };
         setCompleted(Array.isArray(data.completed) ? data.completed : []);
@@ -206,7 +208,7 @@ export default function PracticalAcademy() {
 
   useEffect(() => {
     if (loaded) {
-      try { localStorage.setItem(STORAGE, JSON.stringify({ completed, checklist })); }
+      try { localStorage.setItem(getAtlasStorageKey(STORAGE), JSON.stringify({ completed, checklist })); }
       catch { /* mantém a sessão sem persistência se o navegador bloquear armazenamento */ }
     }
   }, [completed, checklist, loaded]);
@@ -241,7 +243,7 @@ export default function PracticalAcademy() {
         <div className="practical-lesson-meta"><span>{track.title}</span><span>{lesson.level} · {lesson.time}</span></div>
         <h2>{lesson.title}</h2><p className="practical-objective"><Target size={16}/>{lesson.objective}</p>
         {lesson.sections.map(section => <section className="practical-theory" key={section.heading}><h3>{section.heading}</h3><p>{section.body}</p></section>)}
-        <div className="practical-actions"><h3><ClipboardList size={17}/> Missão prática</h3>{lesson.actions.map((action, index) => { const id = `${lesson.id}-${index}`; return <label key={id} className="practical-check"><input type="checkbox" checked={checklist.includes(id)} onChange={e => setChecklist(old => e.target.checked ? [...old, id] : old.filter(value => value !== id))}/><span>{action}</span></label>; })}</div>
+        <div className="practical-actions"><h3><ClipboardList size={17}/> Atividade prática</h3>{lesson.actions.map((action, index) => { const id = `${lesson.id}-${index}`; return <label key={id} className="practical-check"><input type="checkbox" checked={checklist.includes(id)} onChange={e => setChecklist(old => e.target.checked ? [...old, id] : old.filter(value => value !== id))}/><span>{action}</span></label>; })}</div>
         <div className="practical-safety"><AlertTriangle size={18}/><div><strong>Limite de segurança</strong><p>{lesson.safety}</p></div></div>
         <button className="button button-dark practical-complete" onClick={() => setCompleted(old => old.includes(lesson.id) ? old.filter(id => id !== lesson.id) : [...old, lesson.id])}>{completed.includes(lesson.id) ? "Reabrir módulo" : "Marcar módulo estudado"} <CheckCircle2 size={16}/></button>
       </article>

@@ -1,5 +1,7 @@
 "use client";
 
+import { getAtlasStorageKey } from "@/lib/atlas-storage";
+
 import { useEffect, useMemo, useState } from "react";
 import { BrainCircuit, CheckCircle2, CircleHelp, Loader2, RefreshCw, Save, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -39,7 +41,7 @@ export default function MasteryAssessment(props: Props) {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(storageKey);
+      const raw = localStorage.getItem(getAtlasStorageKey(storageKey));
       if (raw) {
         const parsed = JSON.parse(raw);
         setResponses({ ...empty, ...(parsed.responses || {}) });
@@ -89,7 +91,7 @@ export default function MasteryAssessment(props: Props) {
   async function evaluate() {
     if (completed !== 5) { setMessage("Responda às cinco dimensões com pelo menos 40 caracteres em cada campo."); return; }
     setBusy(true); setMessage(""); setSaved(false);
-    try { localStorage.setItem(storageKey, JSON.stringify({ responses, confidence, evaluation: null, evaluatedAt: null, history })); } catch { /* mantém as respostas na tela mesmo sem armazenamento */ }
+    try { localStorage.setItem(getAtlasStorageKey(storageKey), JSON.stringify({ responses, confidence, evaluation: null, evaluatedAt: null, history })); } catch { /* mantém as respostas na tela mesmo sem armazenamento */ }
     try {
       if (!supabase) throw new Error("A avaliação por IA exige uma conta ATLAS configurada. Você ainda pode salvar seu rascunho neste navegador.");
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -103,7 +105,7 @@ export default function MasteryAssessment(props: Props) {
       const nextAverage = Number((Object.values(nextEvaluation.scores).reduce((sum, score) => sum + score, 0) / 5).toFixed(1));
       const nextHistory = [{ evaluatedAt: nextDate, average: nextAverage, scores: nextEvaluation.scores }, ...history].slice(0, 10);
       setEvaluation(nextEvaluation); setEvaluatedAt(nextDate); setHistory(nextHistory);
-      try { localStorage.setItem(storageKey, JSON.stringify({ responses, confidence, evaluation: nextEvaluation, evaluatedAt: nextDate, history: nextHistory })); setSaved(true); } catch { /* a avaliação continua visível na sessão */ }
+      try { localStorage.setItem(getAtlasStorageKey(storageKey), JSON.stringify({ responses, confidence, evaluation: nextEvaluation, evaluatedAt: nextDate, history: nextHistory })); setSaved(true); } catch { /* a avaliação continua visível na sessão */ }
       if (supabase) {
         try {
           const { data: auth } = await supabase.auth.getUser();
@@ -121,7 +123,7 @@ export default function MasteryAssessment(props: Props) {
   function saveDraft() {
     setEvaluation(null); setEvaluatedAt(null);
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ responses, confidence, evaluation: null, evaluatedAt: null, history }));
+      localStorage.setItem(getAtlasStorageKey(storageKey), JSON.stringify({ responses, confidence, evaluation: null, evaluatedAt: null, history }));
       setSaved(true);
       setMessage("Rascunho salvo localmente. Ele ainda não foi avaliado e não representa domínio comprovado.");
     } catch {
@@ -135,14 +137,14 @@ export default function MasteryAssessment(props: Props) {
     <div className="mastery-context"><strong>Objetivo da aula</strong><p>{props.objective}</p><strong>Desafio de aplicação</strong><p>{props.caseStudy}</p><strong>Pergunta para reflexão</strong><p>{props.reflection}</p></div>
     <div className="mastery-overview"><span>{completed}/5 respostas preparadas</span><div><i style={{ width: `${completed / 5 * 100}%` }}/></div><small>Escreva pelo menos 40 caracteres por dimensão. Prefira respostas fundamentadas a textos longos sem argumento.</small></div>
     <div className="mastery-prompts">{dimensions.map((item, index) => <label className="mastery-prompt" key={item.id}>
-      <span className="mastery-index">0{index + 1}</span><div className="mastery-prompt-copy"><strong>{item.title}</strong><p>{item.question}</p><small>{item.hint}</small><textarea rows={4} maxLength={2500} value={responses[item.id]} onChange={event => { const next = { ...responses, [item.id]: event.target.value }; setResponses(next); setEvaluation(null); setEvaluatedAt(null); setSaved(false); try { localStorage.setItem(storageKey, JSON.stringify({ responses: next, confidence, evaluation: null, evaluatedAt: null, history })); } catch { /* armazenamento local opcional */ } }} placeholder="Desenvolva seu raciocínio aqui..."/><span className="mastery-char-count">{responses[item.id].length}/2.500 caracteres</span></div>
+      <span className="mastery-index">0{index + 1}</span><div className="mastery-prompt-copy"><strong>{item.title}</strong><p>{item.question}</p><small>{item.hint}</small><textarea rows={4} maxLength={2500} value={responses[item.id]} onChange={event => { const next = { ...responses, [item.id]: event.target.value }; setResponses(next); setEvaluation(null); setEvaluatedAt(null); setSaved(false); try { localStorage.setItem(getAtlasStorageKey(storageKey), JSON.stringify({ responses: next, confidence, evaluation: null, evaluatedAt: null, history })); } catch { /* armazenamento local opcional */ } }} placeholder="Desenvolva seu raciocínio aqui..."/><span className="mastery-char-count">{responses[item.id].length}/2.500 caracteres</span></div>
       {evaluation && <div className="mastery-dimension-result"><strong>{labels[evaluation.scores[item.id]]} · {evaluation.scores[item.id]}/3</strong><p>{evaluation.evidence[item.id]}</p>{evaluation.gaps[item.id] && <small>Para avançar: {evaluation.gaps[item.id]}</small>}</div>}
     </label>)}</div>
-    <div className="mastery-confidence"><label htmlFor={`confidence-${props.lessonId}`}>Antes de ver o resultado, como você avalia sua própria compreensão?</label><select id={`confidence-${props.lessonId}`} value={confidence} disabled={!!evaluation} onChange={event => { const next = Number(event.target.value); setConfidence(next); setSaved(false); try { localStorage.setItem(storageKey, JSON.stringify({ responses, confidence: next, evaluation, evaluatedAt, history })); } catch { /* armazenamento local opcional */ } }}><option value={0}>Muito baixa</option><option value={1}>Baixa</option><option value={2}>Moderada</option><option value={3}>Alta</option></select><small>A confiança é registrada separadamente e não aumenta sua pontuação.</small></div>
+    <div className="mastery-confidence"><label htmlFor={`confidence-${props.lessonId}`}>Antes de ver o resultado, como você avalia sua própria compreensão?</label><select id={`confidence-${props.lessonId}`} value={confidence} disabled={!!evaluation} onChange={event => { const next = Number(event.target.value); setConfidence(next); setSaved(false); try { localStorage.setItem(getAtlasStorageKey(storageKey), JSON.stringify({ responses, confidence: next, evaluation, evaluatedAt, history })); } catch { /* armazenamento local opcional */ } }}><option value={0}>Muito baixa</option><option value={1}>Baixa</option><option value={2}>Moderada</option><option value={3}>Alta</option></select><small>A confiança é registrada separadamente e não aumenta sua pontuação.</small></div>
     <div className="mastery-actions"><button type="button" className="button button-outline" onClick={saveDraft}><Save size={14}/> Salvar rascunho</button><button type="button" className="button button-dark" disabled={busy || completed !== 5} onClick={evaluate}>{busy ? <><Loader2 size={15} className="spin"/> Avaliando respostas...</> : <><Sparkles size={15}/> Avaliar minhas competências</>}</button></div>
     {message && <p className="mastery-message" role="status">{message}</p>}
     {saved && !message && <p className="mastery-message" role="status">{evaluation ? "Avaliação salva localmente." : "Rascunho salvo localmente."}</p>}
-    {evaluation && <div className="mastery-result"><div className="mastery-result-top"><div><div className="eyebrow">RESULTADO FORMATIVO</div><h3>{average}/3 de média nas cinco competências</h3><p>{evaluation.overall}</p></div><div className="mastery-score"><strong>{average}</strong><span>de 3</span></div></div><div className="mastery-score-grid">{dimensions.map(item=><div key={item.id}><span>{item.title}</span><strong>{evaluation.scores[item.id]}/3</strong><i><b style={{ width: `${evaluation.scores[item.id] / 3 * 100}%` }}/></i></div>)}</div><div className="mastery-next"><strong><CircleHelp size={15}/> Próximos passos recomendados</strong><ul>{evaluation.next_steps.map((step,index)=><li key={`${index}-${step}`}>{step}</li>)}</ul></div><p className="mastery-disclaimer"><CheckCircle2 size={14}/> Avaliação formativa assistida por IA. Compare o feedback com as referências da aula e questione eventuais interpretações inadequadas. Confiança declarada: {confidence}/3. {evaluatedAt ? `Data: ${new Date(evaluatedAt).toLocaleString("pt-BR")}.` : ""}</p><button className="button button-outline" type="button" onClick={()=>{setEvaluation(null);setEvaluatedAt(null);try{localStorage.setItem(storageKey,JSON.stringify({responses,confidence,evaluation:null,evaluatedAt:null,history}));}catch{/* armazenamento local opcional */}setMessage("Você pode revisar suas respostas e realizar uma nova tentativa.");}}><RefreshCw size={14}/> Revisar respostas e tentar novamente</button></div>}
+    {evaluation && <div className="mastery-result"><div className="mastery-result-top"><div><div className="eyebrow">RESULTADO FORMATIVO</div><h3>{average}/3 de média nas cinco competências</h3><p>{evaluation.overall}</p></div><div className="mastery-score"><strong>{average}</strong><span>de 3</span></div></div><div className="mastery-score-grid">{dimensions.map(item=><div key={item.id}><span>{item.title}</span><strong>{evaluation.scores[item.id]}/3</strong><i><b style={{ width: `${evaluation.scores[item.id] / 3 * 100}%` }}/></i></div>)}</div><div className="mastery-next"><strong><CircleHelp size={15}/> Próximos passos recomendados</strong><ul>{evaluation.next_steps.map((step,index)=><li key={`${index}-${step}`}>{step}</li>)}</ul></div><p className="mastery-disclaimer"><CheckCircle2 size={14}/> Avaliação formativa assistida por IA. Compare o feedback com as referências da aula e questione eventuais interpretações inadequadas. Confiança declarada: {confidence}/3. {evaluatedAt ? `Data: ${new Date(evaluatedAt).toLocaleString("pt-BR")}.` : ""}</p><button className="button button-outline" type="button" onClick={()=>{setEvaluation(null);setEvaluatedAt(null);try{localStorage.setItem(getAtlasStorageKey(storageKey),JSON.stringify({responses,confidence,evaluation:null,evaluatedAt:null,history}));}catch{/* armazenamento local opcional */}setMessage("Você pode revisar suas respostas e realizar uma nova tentativa.");}}><RefreshCw size={14}/> Revisar respostas e tentar novamente</button></div>}
     {history.length > 0 && <div className="mastery-history"><strong>Histórico desta aula</strong><p>Últimas {history.length} avaliações registradas neste navegador.</p><div>{history.map((attempt, index) => <div key={`${attempt.evaluatedAt}-${index}`}><span>{new Date(attempt.evaluatedAt).toLocaleDateString("pt-BR")}</span><strong>{attempt.average.toFixed(1)}/3</strong><small>Explicar {attempt.scores.explain} · Relacionar {attempt.scores.relate} · Questionar {attempt.scores.question} · Aplicar {attempt.scores.apply} · Transferir {attempt.scores.transfer}</small></div>)}</div></div>}
   </section>;
 }

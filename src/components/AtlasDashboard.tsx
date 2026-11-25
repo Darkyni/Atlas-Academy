@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import {
-  Activity, ArrowRight, Atom, BookOpen, Brain, CalendarDays, Check, ChevronDown, Clock3,
-  Compass, GraduationCap, Library, Menu, MessageSquareText, Search, Shield,
-  Sparkles, X, Scale, Globe2, Code2, Landmark
+  Activity, ArrowRight, Atom, BookOpen, Brain, Check, ChevronDown, Clock3,
+  GraduationCap, MessageSquareText, Search, Shield, Sparkles, Scale, Globe2, Code2, Landmark
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { lawCourse, lawLessons } from "@/lib/curriculum";
@@ -16,10 +15,16 @@ import LessonWorkbench from "@/components/LessonWorkbench";
 import CourseAssessment from "@/components/CourseAssessment";
 import MasteryAssessment from "@/components/MasteryAssessment";
 import ResourceLibrary from "@/components/ResourceLibrary";
+import AtlasResearchNotebook from "@/components/AtlasResearchNotebook";
+import AtlasStudyPlanner from "@/components/AtlasStudyPlanner";
+import AtlasConceptStudio from "@/components/AtlasConceptStudio";
+import AtlasEvidencePortfolio from "@/components/AtlasEvidencePortfolio";
+import AtlasAcademicIntelligence from "@/components/AtlasAcademicIntelligence";
 import LearningLab from "@/components/LearningLab";
-import LearningArcade from "@/components/LearningArcade";
+import PracticeCenter from "@/components/PracticeCenter";
 import PracticalAcademy from "@/components/PracticalAcademy";
-import { RpgCommandDeck, RpgWorldMap, RpgQuestBoard, RpgAchievementHall } from "@/components/RpgProgression";
+import { EditorialDepartmentIndex, DepartmentProgressRegister } from "@/components/atlas/DepartmentPanels";
+import { AtlasSidebar, AtlasTopbar, type AtlasNavKey } from "@/components/atlas/AtlasShell";
 import { advancedLessons } from "@/lib/advanced-learning";
 import { capstoneLessons } from "@/lib/capstone-lessons";
 
@@ -82,10 +87,9 @@ const schedule = [
   { day: "SÁB", subject: "Ciências e matemática", lesson: "Proporções e porcentagens", time: "45 min", courseId: "ciencias-matematica", lessonId: "cie-01" }
 ];
 
-type NavKey = "Visão geral" | "Academia" | "Plano de estudos" | "Biblioteca" | "Laboratório" | "Desafios" | "Campo & Engenharia" | "Tutor IA";
 
 export default function AtlasDashboard() {
-  const [active, setActive] = useState<NavKey>("Visão geral");
+  const [active, setActive] = useState<AtlasNavKey>("Visão geral");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [question, setQuestion] = useState("");
@@ -104,6 +108,8 @@ export default function AtlasDashboard() {
   const [studentId, setStudentId] = useState<string | null>(null);
   const [courseLevel, setCourseLevel] = useState<"Todos" | "Iniciante" | "Intermediário" | "Avançado">("Todos");
   const [showAuth, setShowAuth] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
@@ -140,12 +146,24 @@ export default function AtlasDashboard() {
   }, []);
 
   useEffect(() => {
+    function handleSearchShortcut(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setShowSearch(value => !value);
+      }
+      if (event.key === "Escape") setShowSearch(false);
+    }
+    window.addEventListener("keydown", handleSearchShortcut);
+    return () => window.removeEventListener("keydown", handleSearchShortcut);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     const progressStorageKey = `atlas-law-completed-lessons:${studentId ?? "guest"}`;
     async function loadProgress() {
       let savedIds: string[] = [];
       try {
-        const saved = window.localStorage.getItem(progressStorageKey) ?? (!studentId ? window.localStorage.getItem("atlas-law-completed-lessons") : null);
+        const saved = window.localStorage.getItem(progressStorageKey);
         if (saved) {
           const parsed: unknown = JSON.parse(saved);
           if (Array.isArray(parsed)) savedIds = parsed.filter((id): id is string => typeof id === "string" && id.length <= 180);
@@ -288,23 +306,9 @@ export default function AtlasDashboard() {
       return;
     }
     const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-    if (!error) {
-      const { data: auth } = await supabase.auth.getUser();
-      if (auth.user) {
-        const { data } = await supabase.from("student_lesson_progress").select("lesson_id").eq("user_id", auth.user.id).eq("completed", true);
-        const cloudIds = data?.map(item => item.lesson_id) || [];
-        const localOnlyIds = completedLessons.filter(id => !cloudIds.includes(id));
-        if (data?.length) setCompletedLessons(old => [...new Set([...old, ...cloudIds])]);
-        if (localOnlyIds.length) {
-          await supabase.from("student_lesson_progress").upsert(localOnlyIds.map(lesson_id => ({
-            user_id: auth.user!.id, lesson_id,
-            course_id: allCourses.find(course => course.lessons.some(lesson => lesson.id === lesson_id))?.id || "direito",
-            completed: true, score: null,
-            completed_at: new Date().toISOString(), updated_at: new Date().toISOString()
-          })), { onConflict: "user_id,lesson_id" });
-        }
-      }
-    }
+    // Do not copy the currently rendered guest state into the newly authenticated
+    // account. The auth listener changes studentId; the account-scoped hydration
+    // effect then loads only that user's local namespace and cloud records.
     setAuthMessage(error ? error.message : "Acesso realizado com sucesso.");
   }
 
@@ -316,39 +320,21 @@ export default function AtlasDashboard() {
   }
 
 
-  const nav: { label: NavKey; icon: typeof Compass; group: string }[] = [
-    { label: "Visão geral", icon: Compass, group: "A JORNADA" },
-    { label: "Academia", icon: GraduationCap, group: "A JORNADA" },
-    { label: "Plano de estudos", icon: CalendarDays, group: "A JORNADA" },
-    { label: "Biblioteca", icon: Library, group: "ARSENAL DO SABER" },
-    { label: "Laboratório", icon: Brain, group: "ARSENAL DO SABER" },
-    { label: "Desafios", icon: Sparkles, group: "ARSENAL DO SABER" },
-    { label: "Campo & Engenharia", icon: Shield, group: "ARSENAL DO SABER" },
-    { label: "Tutor IA", icon: MessageSquareText, group: "ARSENAL DO SABER" }
-  ];
-
   return (
-    <main id="main-content" className="app-shell">
-      <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
-        <div className="brand">
-          <div className="brand-mark"><img src="/atlas-mark.svg" alt="" width="42" height="42"/></div>
-          <div><strong>ATLAS</strong><span>ACADEMY</span></div>
-          <button className="icon-button close-mobile" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X size={18}/></button>
-        </div>
-        <div className="workspace-label">GUILDA PESSOAL · CAMPANHA ATIVA</div>
-        <nav className="main-nav" aria-label="Navegação principal">
-          {nav.map((item, index) => {
-            const Icon = item.icon;
-            const showGroup = index === 0 || nav[index - 1].group !== item.group;
-            return <div key={item.label} className="nav-entry">
-              {showGroup && <div className="nav-group-label">{item.group}</div>}
-              <button key={item.label} className={`nav-item ${active === item.label ? "active" : ""}`} aria-current={active === item.label ? "page" : undefined} onClick={() => { setActive(item.label); setMobileOpen(false); }}>
-                <Icon size={18}/><span>{item.label}</span>{active === item.label && <span className="nav-indicator"/>}
-              </button>
-            </div>;
-          })}
-        </nav>
-        <div className="sidebar-bottom">
+    <div className="app-shell">
+      {showSearch && <div className="atlas-search-overlay" onMouseDown={event => { if (event.target === event.currentTarget) setShowSearch(false); }}>
+        <section className="atlas-search-dialog" role="dialog" aria-modal="true" aria-labelledby="atlas-search-title">
+          <div className="atlas-search-dialog-head"><div><div className="eyebrow">PESQUISA NA ACADEMIA</div><h2 id="atlas-search-title">O que deseja estudar?</h2></div><button className="icon-button" onClick={() => setShowSearch(false)} aria-label="Fechar pesquisa">×</button></div>
+          <label className="atlas-global-search"><Search size={18}/><input autoFocus value={globalSearchQuery} onChange={event => setGlobalSearchQuery(event.target.value)} placeholder="Buscar cursos, aulas e conceitos..."/><kbd>ESC</kbd></label>
+          <div className="atlas-search-results" aria-live="polite">
+            {!globalSearchQuery.trim() ? <p>Pesquise por uma disciplina, curso ou título de aula. Atalho: Ctrl/⌘ + K.</p> : allCourses.flatMap(course => course.lessons.map(lesson => ({ course, lesson }))).filter(item => `${item.course.title} ${item.course.department} ${item.lesson.title} ${item.lesson.objective}`.toLowerCase().includes(globalSearchQuery.toLowerCase())).slice(0, 12).map(({course, lesson}) => <button key={`${course.id}-${lesson.id}`} className="atlas-search-result" onClick={() => {setActive("Academia");setSelectedCourseId(course.id);setSelectedLessonId(lesson.id);setCourseLevel("Todos");setShowSearch(false);window.scrollTo({top:0,behavior:"smooth"});}}><span className="atlas-search-result-icon"><BookOpen size={16}/></span><span><strong>{lesson.title}</strong><small>{course.department} · {course.title}</small></span><ArrowRight size={15}/></button>)}
+            {globalSearchQuery.trim() && !allCourses.some(course => course.lessons.some(lesson => `${course.title} ${course.department} ${lesson.title} ${lesson.objective}`.toLowerCase().includes(globalSearchQuery.toLowerCase()))) && <p>Nenhuma aula encontrada. Tente outro termo ou pesquise diretamente na Biblioteca.</p>}
+          </div>
+          <div className="atlas-search-footer"><span>RESULTADOS DO CURRÍCULO ATLAS</span><span>{globalSearchQuery.trim() ? "Até 12 resultados" : "6 departamentos"}</span></div>
+        </section>
+      </div>}
+      <AtlasSidebar active={active} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} onNavigate={page => {setActive(page);setMobileOpen(false);}}>
+
           <div className="sidebar-note"><Shield size={16}/><span>Seu espaço de aprendizagem, sob seu controle.</span></div>
           <button className="profile-button" onClick={() => setShowAuth(v => !v)}>
             <div className="avatar">{(studentName || studentEmail || "A").slice(0,1).toUpperCase()}</div><div><strong>{studentName || studentEmail?.split("@")[0] || "Estudante"}</strong><span>{studentEmail ? "Conta conectada" : isSupabaseConfigured ? "Acessar conta" : "Modo de demonstração"}</span></div><ChevronDown size={15}/>
@@ -365,45 +351,22 @@ export default function AtlasDashboard() {
             {authMessage && <small role="status">{authMessage}</small>}
             {!isSupabaseConfigured && <small>O cadastro e a recuperação de senha ficam ativos quando o Supabase estiver configurado no ambiente da aplicação.</small>}
           </form>}
-        </div>
-      </aside>
+      </AtlasSidebar>
 
-      <section className="main-area">
-        <header className="topbar">
-          <button className="icon-button menu-mobile" onClick={() => setMobileOpen(true)} aria-label="Abrir menu"><Menu size={20}/></button>
-          <div className="breadcrumb"><span className="breadcrumb-root">ATLAS</span><span>/</span>{active.toUpperCase()}</div>
-          <div className="topbar-right">
-            <button className="topbar-search" onClick={() => { setActive("Academia"); setSelectedCourseId(null); setSelectedLessonId(null); }}><Search size={15}/><span>Explorar conteúdos</span></button>
-            <span className="status-dot" aria-hidden="true"/> <span className="environment-label">AMBIENTE PESSOAL</span><button className="top-avatar" onClick={() => setShowAuth(v => !v)} aria-label="Abrir conta">{(studentName || studentEmail || "A").slice(0,1).toUpperCase()}</button>
-          </div>
-        </header>
+      <main id="main-content" className="main-area" tabIndex={-1}>
+        <AtlasTopbar active={active} initials={(studentName || studentEmail || "A").slice(0,1).toUpperCase()} onOpenMenu={() => setMobileOpen(true)} onSearch={() => {setGlobalSearchQuery("");setShowSearch(true);}} onOpenAccount={() => setShowAuth(value => !value)}/>
 
-        <div className="rpg-hud-wrap"><RpgCommandDeck completed={completedAllCount} total={totalLessonsCount}/></div>
+        <div className="workspace-strip"><span>AMBIENTE DE ESTUDO</span><span>SEIS DEPARTAMENTOS · FORMAÇÃO CONTÍNUA</span></div>
         <div className="content">
           <div className="content-stage" key={`${active}-${selectedCourseId}-${selectedLessonId ?? "course-index"}`}>
           {active === "Visão geral" && <>
             <section className="welcome-row">
-              <div className="welcome-copy"><div className="eyebrow"><span className="eyebrow-pulse"/> CRÔNICAS DO CONHECIMENTO · SUA CAMPANHA</div><h1>O conhecimento é<br/><em>sua maior conquista.</em></h1><p>Explore seis territórios, desenvolva habilidades intelectuais e enfrente desafios que transformam estudo em domínio real.</p><div className="welcome-actions"><button className="button button-dark" onClick={() => {setActive("Academia");setSelectedCourseId(null);setSelectedLessonId(null);}}>Explorar a academia <ArrowRight size={16}/></button><button className="button button-outline" onClick={() => setActive("Laboratório")}><Brain size={16}/> Revisar conhecimentos</button><button className="button button-outline" onClick={() => setActive("Desafios")}><Sparkles size={16}/> Jogar e praticar</button></div></div>
-              <div className="atlas-blueprint-visual" aria-hidden="true">
-                <div className="blueprint-topline"><span>ATLAS / KNOWLEDGE SYSTEM</span><span>FIG. 001</span></div>
-                <svg viewBox="0 0 380 245" role="presentation">
-                  <defs><linearGradient id="atlasBlock" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#8db8ff"/><stop offset="1" stopColor="#6c69dc"/></linearGradient><linearGradient id="atlasCore" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff"/><stop offset="1" stopColor="#dce8ff"/></linearGradient></defs>
-                  <g fill="none" stroke="#a9c1ed" strokeWidth="1.4" opacity=".85"><path d="M190 112 L75 48 L300 48 L190 112 L75 185 L300 185 Z"/><path d="M75 48 L75 185 M300 48 L300 185 M75 48 L190 112 L300 48 M75 185 L190 112 L300 185" strokeDasharray="4 5"/><path d="M190 112 L190 18 M190 112 L190 220" opacity=".65"/></g>
-                  <g fill="#eef4ff" stroke="#9ab4e8" strokeWidth="1.5"><path d="M75 27 l22 13 v26 l-22 13 -22 -13 V40z"/><path d="M300 27 l22 13 v26 l-22 13 -22 -13 V40z"/><path d="M75 164 l22 13 v26 l-22 13 -22 -13 V177z"/><path d="M300 164 l22 13 v26 l-22 13 -22 -13 V177z"/></g>
-                  <path d="M190 69 l47 27 v54 l-47 27 -47 -27 V96z" fill="url(#atlasBlock)" stroke="#dbe7ff" strokeWidth="2"/>
-                  <path d="M190 82 l34 20 v39 l-34 20 -34 -20 v-39z" fill="url(#atlasCore)" opacity=".96"/>
-                  <path d="M166 110 q12 -9 24 0 q12 -9 24 0 v24 q-12 -8 -24 1 q-12 -9 -24 -1z" fill="none" stroke="#5474bd" strokeWidth="2"/><path d="M190 110 v25" stroke="#5474bd" strokeWidth="1.5"/>
-                  <g fill="#4b76c9"><circle cx="75" cy="53" r="4"/><circle cx="300" cy="53" r="4"/><circle cx="75" cy="190" r="4"/><circle cx="300" cy="190" r="4"/></g>
-                  <g fill="#9db3d8" fontSize="8" fontFamily="Arial" letterSpacing="1.5"><text x="16" y="18">01 / LAW</text><text x="274" y="18">02 / ECON</text><text x="10" y="226">03 / TECH</text><text x="266" y="226">04 / HISTORY</text></g>
-                </svg>
-                <div className="blueprint-bottomline"><span>06 DOMAINS</span><i/><span>LEARN · THINK · APPLY</span></div>
-              </div>
+              <div className="welcome-copy"><div className="eyebrow">ACADEMIA PESSOAL · VISÃO GERAL</div><h1>Conhecimento para<br/><em>compreender o mundo.</em></h1><p>Um espaço de formação multidisciplinar para estudar com profundidade, construir repertório e transformar conhecimento em capacidade prática.</p><div className="welcome-actions"><button className="button button-dark" onClick={() => {setActive("Academia");setSelectedCourseId(null);setSelectedLessonId(null);}}>Explorar a academia <ArrowRight size={16}/></button><button className="button button-outline" onClick={() => setActive("Laboratório")}><Brain size={16}/> Revisar conhecimentos</button><button className="button button-outline" onClick={() => setActive("Prática aplicada")}><Sparkles size={16}/> Praticar competências</button></div></div>
+              <EditorialDepartmentIndex departments={subjects.map(({id,title}) => ({id,title}))}/>
             </section>
 
-            <RpgQuestBoard completed={completedAllCount} total={totalLessonsCount} onAcademy={() => {setActive("Academia");setSelectedCourseId(null);setSelectedLessonId(null);}} onLab={() => setActive("Laboratório")} onChallenges={() => setActive("Desafios")}/>
-
             <section className="daily-card">
-              <div className="daily-copy"><div className="eyebrow light">MISSÃO PRINCIPAL · {nextSchedule.subject.toUpperCase()}</div><h2>{nextSchedule.lesson}</h2><p>Estude o conteúdo, teste sua compreensão e conclua a missão somente depois de demonstrar que entendeu.</p><div className="daily-meta"><span><Clock3 size={15}/> {nextSchedule.time}</span><span><BookOpen size={15}/> Estudo orientado</span></div></div>
+              <div className="daily-copy"><div className="eyebrow light">PRÓXIMA SESSÃO · {nextSchedule.subject.toUpperCase()}</div><h2>{nextSchedule.lesson}</h2><p>Retome o percurso com uma sessão orientada. Ao final, registre o que compreendeu e identifique dúvidas para aprofundamento.</p><div className="daily-meta"><span><Clock3 size={15}/> {nextSchedule.time}</span><span><BookOpen size={15}/> Estudo orientado</span></div></div>
               <div className="daily-action"><div className="session-index">{nextSchedule.day} <span>·</span> PRÓXIMA AULA</div><button className="button button-light" onClick={() => {setActive("Academia");openCourse(nextSchedule.courseId);openLesson(nextSchedule.lessonId);}}>Começar aula <ArrowRight size={16}/></button></div>
             </section>
 
@@ -413,9 +376,12 @@ export default function AtlasDashboard() {
               <div className="metric-card"><div className="metric-head"><span>TEMPO ESTIMADO</span><Clock3 size={16}/></div><strong>{completedAllMinutes}<small> min</small></strong><div className="metric-foot">Duração das aulas concluídas</div></div>
             </section>
 
-            <section className="section-block">
-              <RpgWorldMap departments={allCourses.map(course => ({id:course.id,title:course.title,desc:course.description,lessons:course.lessons}))} completedIds={completedLessons} onSelect={(id) => { openCourse(id); setActive("Academia"); }}/>
-              <RpgAchievementHall completed={completedAllCount}/>
+            <section className="section-block department-overview">
+              <div className="section-heading"><div><div className="eyebrow">ESTRUTURA ACADÊMICA</div><h2>Departamentos de estudo</h2></div><button className="text-button" onClick={() => {setActive("Academia");setSelectedCourseId(null);setSelectedLessonId(null);}}>Ver todos os cursos <ArrowRight size={14}/></button></div>
+              <DepartmentProgressRegister departments={allCourses.map(course => {
+                const subject = subjects.find(item => item.id === course.id) ?? subjects[0];
+                return { id: course.id, title: course.title, description: course.description, icon: subject.icon, total: course.lessons.length, completed: course.lessons.filter(lesson => completedLessons.includes(lesson.id)).length };
+              })} onSelect={id => {openCourse(id);setActive("Academia");}}/>
             </section>
 
             <section className="section-block lower-grid">
@@ -433,19 +399,33 @@ export default function AtlasDashboard() {
               <h1>{selectedLesson.title}</h1>
               <p className="page-intro">{selectedLesson.objective}</p>
               <div className="lesson-meta"><span><Clock3 size={14}/>{selectedLesson.duration} minutos</span><span><BookOpen size={14}/> Nível {lessonLevel(selectedCourse.id, selectedLesson.id).toLowerCase()}</span><span><GraduationCap size={14}/>{selectedCourse.title}</span></div>
-              <article className="lesson-paper">
-                <div className="lesson-callout"><strong>Antes de começar</strong><p>{selectedLesson.objective}</p></div>
-                {selectedLesson.sections.map((section,index)=><section className="lesson-content-section" key={section.heading}><h2>{section.heading}</h2>{section.paragraphs.map((paragraph,i)=><p key={i}>{paragraph}</p>)}{section.points && <ul>{section.points.map(point=><li key={point}>{point}</li>)}</ul>}</section>)}
-                <section className="lesson-content-section"><h2>Estudo de caso</h2><p>{selectedLesson.caseStudy}</p></section>
-                <section className="lesson-content-section"><h2>Conceitos essenciais</h2><div className="term-grid">{selectedLesson.keyTerms.map(term=><div className="term-card" key={term.term}><strong>{term.term}</strong><p>{term.definition}</p></div>)}</div></section>
-                <section className="quiz-panel"><div className="eyebrow">VERIFICAÇÃO DE APRENDIZAGEM</div><h2>{selectedLesson.question.prompt}</h2><div className="quiz-options">{selectedLesson.question.options.map((option,index)=><button key={option} className={`quiz-option ${quizSubmitted && index===selectedLesson.question.correct ? "correct" : ""} ${quizSubmitted && quizChoice===index && index!==selectedLesson.question.correct ? "incorrect" : ""} ${quizChoice===index ? "chosen" : ""}`} onClick={()=>{setQuizChoice(index);setQuizSubmitted(false);}}><span>{String.fromCharCode(65+index)}</span>{option}</button>)}</div><button className="button button-dark" disabled={quizChoice===null} onClick={()=>setQuizSubmitted(true)}>Conferir resposta</button>{quizSubmitted && <div className={`quiz-feedback ${quizChoice===selectedLesson.question.correct ? "right" : "wrong"}`}><strong>{quizChoice===selectedLesson.question.correct ? "Resposta correta." : "Vamos revisar esse ponto."}</strong><p>{selectedLesson.question.explanation}</p></div>}</section>
-                <section className="lesson-content-section reflection-box"><h2>Para refletir</h2><p>{selectedLesson.reflection}</p></section>
-                <section className="lesson-content-section"><h2>Referências para aprofundamento</h2><ul>{selectedLesson.references.map(ref=><li key={ref}>{ref}</li>)}</ul></section>
-                {relatedResources.length>0 && <section className="lesson-content-section related-resources"><h2>Materiais relacionados</h2><p>Continue o estudo em fontes oficiais, livros e materiais acadêmicos selecionados para esta área.</p><div>{relatedResources.map(resource=><a key={resource.id} href={resource.url} target="_blank" rel="noreferrer"><strong>{resource.title}</strong><span>{resource.institution} · {resource.kind}</span></a>)}</div></section>}
+              <div className="lesson-reading-layout">
+              <article className="lesson-paper" aria-label={`Conteúdo da aula: ${selectedLesson.title}`}>
+                <div className="lesson-callout" id="objetivo-da-aula"><strong>Antes de começar</strong><p>{selectedLesson.objective}</p></div>
+                {selectedLesson.sections.map((section,index)=><section className="lesson-content-section" id={`secao-${index + 1}`} key={section.heading}><h2>{section.heading}</h2>{section.paragraphs.map((paragraph,i)=><p key={i}>{paragraph}</p>)}{section.points && <ul>{section.points.map(point=><li key={point}>{point}</li>)}</ul>}</section>)}
+                <section className="lesson-content-section" id="estudo-de-caso"><h2>Estudo de caso</h2><p>{selectedLesson.caseStudy}</p></section>
+                <section className="lesson-content-section" id="conceitos-essenciais"><h2>Conceitos essenciais</h2><div className="term-grid">{selectedLesson.keyTerms.map(term=><div className="term-card" key={term.term}><strong>{term.term}</strong><p>{term.definition}</p></div>)}</div></section>
+                <section className="quiz-panel" id="verificacao"><div className="eyebrow">VERIFICAÇÃO DE APRENDIZAGEM</div><h2>{selectedLesson.question.prompt}</h2><div className="quiz-options">{selectedLesson.question.options.map((option,index)=><button key={option} className={`quiz-option ${quizSubmitted && index===selectedLesson.question.correct ? "correct" : ""} ${quizSubmitted && quizChoice===index && index!==selectedLesson.question.correct ? "incorrect" : ""} ${quizChoice===index ? "chosen" : ""}`} onClick={()=>{setQuizChoice(index);setQuizSubmitted(false);}}><span>{String.fromCharCode(65+index)}</span>{option}</button>)}</div><button className="button button-dark" disabled={quizChoice===null} onClick={()=>setQuizSubmitted(true)}>Conferir resposta</button>{quizSubmitted && <div className={`quiz-feedback ${quizChoice===selectedLesson.question.correct ? "right" : "wrong"}`}><strong>{quizChoice===selectedLesson.question.correct ? "Resposta correta." : "Vamos revisar esse ponto."}</strong><p>{selectedLesson.question.explanation}</p></div>}</section>
+                <section className="lesson-content-section reflection-box" id="reflexao"><h2>Para refletir</h2><p>{selectedLesson.reflection}</p></section>
+                <section className="lesson-content-section" id="referencias"><h2>Referências para aprofundamento</h2><ul>{selectedLesson.references.map(ref=><li key={ref}>{ref}</li>)}</ul></section>
+                {relatedResources.length>0 && <section className="lesson-content-section related-resources" id="materiais-relacionados"><h2>Materiais relacionados</h2><p>Continue o estudo em fontes oficiais, livros e materiais acadêmicos selecionados para esta área.</p><div>{relatedResources.map(resource=><a key={resource.id} href={resource.url} target="_blank" rel="noreferrer"><strong>{resource.title}</strong><span>{resource.institution} · {resource.kind}</span></a>)}</div></section>}
                 <LessonWorkbench lessonId={selectedLesson.id} reflectionPrompt={selectedLesson.reflection} casePrompt={selectedLesson.caseStudy}/>
                 <MasteryAssessment courseId={selectedCourse.id} courseTitle={selectedCourse.title} lessonId={selectedLesson.id} lessonTitle={selectedLesson.title} objective={selectedLesson.objective} caseStudy={selectedLesson.caseStudy} lessonContext={selectedLesson.sections.map(section=>`${section.heading}\n${section.paragraphs.join("\n")}`).join("\n\n")+`\n\nConceitos essenciais: ${selectedLesson.keyTerms.map(term=>`${term.term}: ${term.definition}`).join("; ")}`} reflection={selectedLesson.reflection}/>
                 <div className="lesson-completion"><div><strong>{completedLessons.includes(selectedLesson.id) ? "Aula marcada como concluída" : "Terminou esta aula?"}</strong><p>Conclua depois de estudar o conteúdo e responder à questão de verificação.</p></div><button className="button button-dark" onClick={finishLesson} disabled={completedLessons.includes(selectedLesson.id) || !quizSubmitted || quizChoice!==selectedLesson.question.correct}>{completedLessons.includes(selectedLesson.id) ? <><Check size={15}/> Concluída</> : <>Marcar como concluída <ArrowRight size={15}/></>}</button></div>
               </article>
+              <aside className="lesson-outline" aria-label="Nesta aula">
+                <div className="eyebrow">NESTA AULA</div>
+                <a href="#objetivo-da-aula">Objetivo</a>
+                {selectedLesson.sections.map((section, index) => <a key={section.heading} href={`#secao-${index + 1}`}>{section.heading}</a>)}
+                <a href="#estudo-de-caso">Estudo de caso</a>
+                <a href="#conceitos-essenciais">Conceitos essenciais</a>
+                <a href="#verificacao">Verificação</a>
+                <a href="#reflexao">Reflexão</a>
+                <a href="#referencias">Referências</a>
+                {relatedResources.length > 0 && <a href="#materiais-relacionados">Materiais relacionados</a>}
+                <div className="lesson-outline-progress"><span>ESTADO DA AULA</span><strong>{completedLessons.includes(selectedLesson.id) ? "Concluída" : quizSubmitted && quizChoice === selectedLesson.question.correct ? "Verificação aprovada" : "Em estudo"}</strong></div>
+              </aside>
+              </div>
             </> : selectedCourseId ? <>
               <button className="text-button lesson-back" onClick={() => setSelectedCourseId(null)}><ArrowRight size={14} className="back-arrow"/> Todos os departamentos</button>
               <div className="eyebrow">{selectedCourse.department.toUpperCase()} · TRILHA PROGRESSIVA · 3 NÍVEIS</div>
@@ -467,26 +447,28 @@ export default function AtlasDashboard() {
             {!selectedLesson && !selectedCourseId && <div className="section-block course-catalog-note"><div className="eyebrow">ESTRUTURA ACADÊMICA</div><h2>Aprender com profundidade e conexão</h2><p className="page-intro">Cada aula combina explicação teórica, conceitos essenciais, estudo de caso, questão comentada, reflexão e referências. A Biblioteca reúne fontes por departamento e o Laboratório oferece revisão espaçada e desafios aplicados.</p></div>}
           </section>}
 
-          {active === "Plano de estudos" && <section className="page-section plan-page">
-            <div className="eyebrow">ORGANIZAÇÃO E CONSISTÊNCIA</div><h1>Plano de estudos</h1><p className="page-intro">Uma sugestão de ritmo semanal para manter contato com as seis áreas. Você pode abrir qualquer sessão diretamente por aqui.</p>
-            <div className="plan-summary-grid"><div><span>SESSÕES SEMANAIS</span><strong>{schedule.length}</strong><small>Uma por departamento</small></div><div><span>SESSÕES CONCLUÍDAS</span><strong>{completedScheduleCount}/{schedule.length}</strong><small>Com base nas aulas concluídas</small></div><div><span>TEMPO PLANEJADO</span><strong>4h 15m</strong><small>Estimativa semanal</small></div></div>
-            <div className="plan-board"><div className="section-heading"><div><div className="eyebrow">SUA SEMANA</div><h2>Ritmo sugerido</h2></div><span className="small-count">SEGUNDA A SÁBADO</span></div>{schedule.map((item,index)=><button key={item.day} className={`plan-session ${completedLessons.includes(item.lessonId)?"is-done":""}`} onClick={()=>{setActive("Academia");openCourse(item.courseId);openLesson(item.lessonId);}}><span className="plan-day">{item.day}<small>{index+1}</small></span><span className="plan-session-copy"><strong>{item.lesson}</strong><small>{item.subject}</small></span><span className="plan-time"><Clock3 size={14}/>{item.time}</span><span className="plan-open">{completedLessons.includes(item.lessonId)?<Check size={16}/>:<ArrowRight size={16}/>}</span></button>)}</div>
-            <div className="plan-tip"><Sparkles size={18}/><div><strong>Uma rotina sustentável vale mais que uma maratona.</strong><p>Use os tempos como referência. Se perder um dia, retome pela próxima sessão sem tentar compensar tudo de uma vez.</p></div></div>
-          </section>}
+          {active === "Plano de estudos" && <AtlasStudyPlanner schedule={schedule} onOpenLesson={(courseId, lessonId) => { setActive("Academia"); openCourse(courseId); openLesson(lessonId); }} />}
 
           {active === "Biblioteca" && <ResourceLibrary/>}
 
+          {active === "Caderno de pesquisa" && <AtlasResearchNotebook/>}
+
+          {active === "Mapa de conceitos" && <AtlasConceptStudio/>}
+
+          {active === "Portfólio de evidências" && <AtlasEvidencePortfolio/>}
+          {active === "Inteligência acadêmica" && <AtlasAcademicIntelligence/>}
+
           {active === "Laboratório" && <LearningLab/>}
 
-          {active === "Desafios" && <LearningArcade/>}
+          {active === "Prática aplicada" && <PracticeCenter/>}
 
           {active === "Campo & Engenharia" && <PracticalAcademy/>}
 
           {active === "Tutor IA" && <section className="page-section tutor-page"><div className="eyebrow">ASSISTENTE ACADÊMICO</div><h1>Tutor ATLAS</h1><p className="page-intro">Faça perguntas, peça explicações e investigue conceitos com orientação didática.</p><div className="tutor-layout"><div className="tutor-intro"><div className="tutor-orb"><Brain size={30}/></div><h2>Um parceiro para pensar melhor.</h2><p>O Tutor ATLAS funciona no modo gratuito local: usa uma base didática incorporada ao projeto, sem chave de API, cobrança ou créditos externos.</p><div className="tutor-capabilities"><span><Check size={14}/> Explicações passo a passo</span><span><Check size={14}/> Exemplos e analogias</span><span><Check size={14}/> Perguntas de verificação</span></div></div><form className="tutor-chat" onSubmit={askTutor}><div className="chat-header"><span className="online-dot"/> TUTOR ACADÊMICO <span className="chat-model">GRATUITO · SEM API</span></div><div className="chat-body">{answer ? <div className="answer-bubble">{answer}</div> : tutorError ? <div className="error-bubble">{tutorError}</div> : <div className="chat-placeholder"><MessageSquareText size={25}/><strong>O que você gostaria de compreender?</strong><span>Experimente perguntar sobre um conceito, acontecimento ou problema.</span></div>}</div><label className="tutor-area-label">Área de aprofundamento<select value={tutorArea} onChange={event=>setTutorArea(event.target.value)}><option>Interdisciplinar</option><option>Direito e instituições</option><option>Economia e Finanças</option><option>Tecnologia e Inteligência Artificial</option><option>História e Geopolítica</option><option>Filosofia e Pensamento Crítico</option><option>Ciências e Matemática</option></select></label><textarea value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Digite sua pergunta..." rows={3}/><div className="chat-footer"><span>Base didática local; confirme temas complexos nas fontes da Biblioteca.</span><button className="button button-dark" disabled={loading || !question.trim()}>{loading ? "Consultando..." : "Enviar pergunta"} <ArrowRight size={15}/></button></div></form></div></section>}
           </div>
-          <footer className="footer"><span>ATLAS ACADEMY</span><span>RPG LEARNING WORLD · CONHECIMENTO EM EVOLUÇÃO · 2026</span></footer>
+          <footer className="footer"><span>ATLAS ACADEMY</span><span>ESTUDO · PESQUISA · PENSAMENTO CRÍTICO</span></footer>
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }

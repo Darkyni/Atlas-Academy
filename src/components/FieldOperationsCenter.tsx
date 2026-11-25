@@ -1,5 +1,7 @@
 "use client";
 
+import { getAtlasStorageKey } from "@/lib/atlas-storage";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity, AlertTriangle, BatteryCharging, ClipboardList, Copy, Gauge, House,
@@ -61,7 +63,7 @@ export default function FieldOperationsCenter() {
     async function hydrate() {
       let local = initialState;
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(getAtlasStorageKey(STORAGE_KEY));
         if (raw) local = { ...initialState, ...JSON.parse(raw) };
       } catch { /* mantém estado vazio */ }
       const cloud = await loadStudentRecords<OpsState>("field_ops");
@@ -81,7 +83,7 @@ export default function FieldOperationsCenter() {
 
   useEffect(() => {
     if (!loaded) return;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* fallback de sessão */ }
+    try { localStorage.setItem(getAtlasStorageKey(STORAGE_KEY), JSON.stringify(state)); } catch { /* fallback de sessão */ }
     void saveStudentRecord("field_ops", "workspace", state);
   }, [state, loaded]);
 
@@ -117,12 +119,12 @@ export default function FieldOperationsCenter() {
       <div><div className="eyebrow"><Activity size={14}/> ATLAS OPERATIONS · FERRAMENTAS DE CAMPO</div><h2 id="field-ops-title">Centro de operações</h2><p>Transforme conteúdo em planos, registros e cálculos verificáveis. Os registros ficam no armazenamento deste navegador e, quando há conta ATLAS configurada, podem ser sincronizados pela tabela protegida por RLS após a migration 006. O armazenamento local não é criptografado pelo aplicativo; não insira senhas nem dados altamente sensíveis.</p></div>
       <div className="field-ops-live"><span/> WORKSPACE PESSOAL</div>
     </div>
-    <div className="field-ops-tabs" role="tablist" aria-label="Ferramentas de operações">
-      <button type="button" role="tab" aria-selected={tab === "resilience"} className={tab === "resilience" ? "active" : ""} onClick={() => setTab("resilience")}><ShieldCheck size={16}/> Resiliência</button>
-      <button type="button" role="tab" aria-selected={tab === "risk"} className={tab === "risk" ? "active" : ""} onClick={() => setTab("risk")}><Target size={16}/> Matriz de riscos</button>
-      <button type="button" role="tab" aria-selected={tab === "maintenance"} className={tab === "maintenance" ? "active" : ""} onClick={() => setTab("maintenance")}><Wrench size={16}/> Manutenção</button>
-      <button type="button" role="tab" aria-selected={tab === "puzzle"} className={tab === "puzzle" ? "active" : ""} onClick={() => setTab("puzzle")}><Target size={16}/> Puzzle de crise</button>
-      <button type="button" role="tab" aria-selected={tab === "bench"} className={tab === "bench" ? "active" : ""} onClick={() => setTab("bench")}><Gauge size={16}/> Bancada técnica</button>
+    <div className="field-ops-tabs" role="group" aria-label="Selecionar ferramenta de operações">
+      <button type="button" aria-pressed={tab === "resilience"} className={tab === "resilience" ? "active" : ""} onClick={() => setTab("resilience")}><ShieldCheck size={16}/> Resiliência</button>
+      <button type="button" aria-pressed={tab === "risk"} className={tab === "risk" ? "active" : ""} onClick={() => setTab("risk")}><Target size={16}/> Matriz de riscos</button>
+      <button type="button" aria-pressed={tab === "maintenance"} className={tab === "maintenance" ? "active" : ""} onClick={() => setTab("maintenance")}><Wrench size={16}/> Manutenção</button>
+      <button type="button" aria-pressed={tab === "puzzle"} className={tab === "puzzle" ? "active" : ""} onClick={() => setTab("puzzle")}><Target size={16}/> Puzzle de crise</button>
+      <button type="button" aria-pressed={tab === "bench"} className={tab === "bench" ? "active" : ""} onClick={() => setTab("bench")}><Gauge size={16}/> Bancada técnica</button>
     </div>
 
     {tab === "resilience" && <div className="field-ops-panel resilience-panel">

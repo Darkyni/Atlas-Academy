@@ -1,5 +1,7 @@
 "use client";
 
+import { getAtlasStorageKey } from "@/lib/atlas-storage";
+
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { BookOpen, ExternalLink, FileText, FileDown, PlayCircle, Search, Scale, Filter, Bookmark, BookmarkCheck } from "lucide-react";
 import { learningResources, type ResourceKind } from "@/lib/resources";
@@ -41,7 +43,7 @@ export default function ResourceLibrary() {
     async function hydrateBookmarks() {
       let local: string[] = [];
       try {
-        const saved = window.localStorage.getItem("atlas-library-bookmarks-v1");
+        const saved = window.localStorage.getItem(getAtlasStorageKey("atlas-library-bookmarks-v1"));
         if (saved) local = JSON.parse(saved);
       } catch { /* armazenamento local indisponível */ }
       const cloud = await loadStudentRecords<{ saved: boolean }>("library_bookmark");
@@ -55,7 +57,7 @@ export default function ResourceLibrary() {
 
   useEffect(() => subscribeToStudentAuth(userId => {
     let local: string[] = [];
-    try { local = JSON.parse(window.localStorage.getItem("atlas-library-bookmarks-v1") || "[]"); }
+    try { local = JSON.parse(window.localStorage.getItem(getAtlasStorageKey("atlas-library-bookmarks-v1")) || "[]"); }
     catch { /* armazenamento local indisponível */ }
     void loadStudentRecordsForUser<{ saved: boolean }>("library_bookmark", userId).then(cloud => {
       const merged = [...new Set([...Object.entries(cloud).filter(([, value]) => value.saved).map(([id]) => id), ...local])];
@@ -65,7 +67,7 @@ export default function ResourceLibrary() {
   }), []);
 
   useEffect(() => {
-    try { window.localStorage.setItem("atlas-library-bookmarks-v1", JSON.stringify(savedIds)); }
+    try { window.localStorage.setItem(getAtlasStorageKey("atlas-library-bookmarks-v1"), JSON.stringify(savedIds)); }
     catch { /* armazenamento local indisponível */ }
   }, [savedIds]);
 

@@ -1,12 +1,14 @@
 "use client";
 
+import { getAtlasStorageKey } from "@/lib/atlas-storage";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight, Brain, CheckCircle2, RotateCw, Sparkles, CalendarClock,
-  NotebookPen, Layers, BookOpen, AlertCircle, Gamepad2, ClipboardCheck, Trophy
+  NotebookPen, Layers, BookOpen, AlertCircle, ClipboardCheck
 } from "lucide-react";
 import { studyCards, practiceScenarios } from "@/lib/atlas-study-data";
-import LearningArcade from "@/components/LearningArcade";
+import PracticeCenter from "@/components/PracticeCenter";
 import { loadStudentRecords, loadStudentRecordsForUser, saveStudentRecord, saveStudentRecordForUser, subscribeToStudentAuth } from "@/lib/student-records";
 
 type Grade = "again" | "hard" | "good" | "easy";
@@ -38,7 +40,7 @@ export default function LearningLab() {
   const [noteSaved, setNoteSaved] = useState(false);
   const [lastTestSummary, setLastTestSummary] = useState<string>("");
   const [testHistory, setTestHistory] = useState<TestAttempt[]>([]);
-  const [activeTool, setActiveTool] = useState<"review" | "test" | "games">("review");
+  const [activeTool, setActiveTool] = useState<"review" | "test" | "practice">("review");
   const [testIndex, setTestIndex] = useState(0);
   const [testChoice, setTestChoice] = useState<number | null>(null);
   const [testAnswers, setTestAnswers] = useState<Array<{ id: string; correct: boolean }>>([]);
@@ -52,11 +54,11 @@ export default function LearningLab() {
       let localNotes: Record<string, string> = {};
       let localTests: TestAttempt[] = [];
       try {
-        const saved = window.localStorage.getItem(STORAGE_KEY);
+        const saved = window.localStorage.getItem(getAtlasStorageKey(STORAGE_KEY));
         if (saved) local = JSON.parse(saved);
-        const notes = window.localStorage.getItem(NOTES_KEY);
+        const notes = window.localStorage.getItem(getAtlasStorageKey(NOTES_KEY));
         if (notes) localNotes = JSON.parse(notes);
-        const tests = window.localStorage.getItem(TEST_HISTORY_KEY);
+        const tests = window.localStorage.getItem(getAtlasStorageKey(TEST_HISTORY_KEY));
         if (tests) localTests = JSON.parse(tests);
       } catch { /* armazenamento local indisponível */ }
       const [cloudReviews, cloudNotes, cloudTests] = await Promise.all([
@@ -85,8 +87,8 @@ export default function LearningLab() {
     let localReviews: ReviewMap = {};
     let localNotes: Record<string, string> = {};
     try {
-      localReviews = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "{}");
-      localNotes = JSON.parse(window.localStorage.getItem(NOTES_KEY) || "{}");
+      localReviews = JSON.parse(window.localStorage.getItem(getAtlasStorageKey(STORAGE_KEY)) || "{}");
+      localNotes = JSON.parse(window.localStorage.getItem(getAtlasStorageKey(NOTES_KEY)) || "{}");
     } catch { /* armazenamento local indisponível */ }
     void Promise.all([
       loadStudentRecordsForUser<ReviewRecord>("flashcard_review", userId),
@@ -97,7 +99,7 @@ export default function LearningLab() {
       const cloudNoteMap = Object.fromEntries(Object.entries(cloudNotes).map(([key, value]) => [key, value.text || ""]));
       setNotesMap({ ...cloudNoteMap, ...localNotes });
       let localTests: TestAttempt[] = [];
-      try { localTests = JSON.parse(window.localStorage.getItem(TEST_HISTORY_KEY) || "[]"); }
+      try { localTests = JSON.parse(window.localStorage.getItem(getAtlasStorageKey(TEST_HISTORY_KEY)) || "[]"); }
       catch { /* histórico local indisponível */ }
       setTestHistory(mergeTestHistory(localTests, Object.values(cloudTests)));
       setNotesLoaded(true);
@@ -108,7 +110,7 @@ export default function LearningLab() {
   }), []);
 
   useEffect(() => {
-    try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(reviewState)); }
+    try { window.localStorage.setItem(getAtlasStorageKey(STORAGE_KEY), JSON.stringify(reviewState)); }
     catch { /* armazenamento local indisponível */ }
   }, [reviewState]);
 
@@ -120,12 +122,12 @@ export default function LearningLab() {
 
   useEffect(() => {
     if (!notesLoaded) return;
-    try { window.localStorage.setItem(NOTES_KEY, JSON.stringify(notesMap)); }
+    try { window.localStorage.setItem(getAtlasStorageKey(NOTES_KEY), JSON.stringify(notesMap)); }
     catch { /* armazenamento local indisponível */ }
   }, [notesMap, notesLoaded]);
 
   useEffect(() => {
-    try { window.localStorage.setItem(TEST_HISTORY_KEY, JSON.stringify(testHistory.slice(0, 10))); }
+    try { window.localStorage.setItem(getAtlasStorageKey(TEST_HISTORY_KEY), JSON.stringify(testHistory.slice(0, 10))); }
     catch { /* armazenamento local indisponível */ }
   }, [testHistory]);
 
@@ -202,13 +204,13 @@ export default function LearningLab() {
       <div><CheckCircle2 size={18}/><strong>{mastered}</strong><span>cartões consolidados</span></div>
     </div>
 
-    <div className="lab-mode-tabs" role="tablist" aria-label="Ferramentas do laboratório">
-      <button type="button" role="tab" aria-selected={activeTool === "review"} className={activeTool === "review" ? "active" : ""} onClick={() => setActiveTool("review")}><Brain size={16}/> Revisão e casos</button>
-      <button type="button" role="tab" aria-selected={activeTool === "test"} className={activeTool === "test" ? "active" : ""} onClick={() => setActiveTool("test")}><ClipboardCheck size={16}/> Testes dinâmicos</button>
-      <button type="button" role="tab" aria-selected={activeTool === "games"} className={activeTool === "games" ? "active" : ""} onClick={() => setActiveTool("games")}><Gamepad2 size={16}/> Jogos e simulações</button>
+    <div className="lab-mode-tabs" role="group" aria-label="Selecionar ferramenta do laboratório">
+      <button type="button" aria-pressed={activeTool === "review"} className={activeTool === "review" ? "active" : ""} onClick={() => setActiveTool("review")}><Brain size={16}/> Revisão e casos</button>
+      <button type="button" aria-pressed={activeTool === "test"} className={activeTool === "test" ? "active" : ""} onClick={() => setActiveTool("test")}><ClipboardCheck size={16}/> Testes dinâmicos</button>
+      <button type="button" aria-pressed={activeTool === "practice"} className={activeTool === "practice" ? "active" : ""} onClick={() => setActiveTool("practice")}><Brain size={16}/> Prática aplicada</button>
     </div>
 
-    {activeTool === "games" && <div className="lab-games-embed"><LearningArcade initialDepartment={department} /></div>}
+    {activeTool === "practice" && <div className="lab-practice-embed"><PracticeCenter initialDepartment={department} /></div>}
 
     {activeTool === "test" && <article className="lab-panel dynamic-test-panel">
       <div className="lab-panel-head"><div><div className="eyebrow">04 · AVALIAÇÃO FORMATIVA</div><h2>Teste dinâmico por disciplina</h2></div><ClipboardCheck size={22}/></div>
@@ -220,7 +222,7 @@ export default function LearningLab() {
         <div className="scenario-options">{currentTestQuestion.options.map((option, index) => <button key={option.label} disabled={Boolean(testFeedback)} className={`scenario-option ${testChoice === index ? "selected" : ""} ${testFeedback && option.correct ? "scenario-correct" : ""}`} onClick={() => setTestChoice(index)}><span>{String.fromCharCode(65 + index)}</span>{option.label}</button>)}</div>
         {testFeedback && <div className={`scenario-feedback ${testFeedback.correct ? "good" : "needs-work"}`}><strong>{testFeedback.correct ? "Resposta correta." : "Vamos revisar."}</strong><p>{testFeedback.text}</p></div>}
         {!testFeedback ? <button className="button button-dark" disabled={testChoice === null} onClick={() => { const picked = currentTestQuestion.options[testChoice!]; setTestAnswers(old => [...old, { id: currentTestQuestion.id, correct: picked.correct }]); setTestFeedback({ correct: picked.correct, text: picked.feedback }); }}>Confirmar resposta <ArrowRight size={14}/></button> : <button className="button button-dark" onClick={() => { if (testIndex + 1 >= testQuestions.length) { setTestFinished(true); const correctCount = testAnswers.filter(item => item.correct).length; const completedAt = new Date().toISOString(); const summary = `${correctCount}/${testAnswers.length} respostas corretas`; const attempt: TestAttempt = { department, score: correctCount, total: testAnswers.length, completedAt }; setLastTestSummary(summary); setTestHistory(old => [attempt, ...old].slice(0, 10)); void saveStudentRecord("dynamic_test", `${department}-${completedAt}`, attempt); } else setTestIndex(old => old + 1); setTestChoice(null); setTestFeedback(null); }}> {testIndex + 1 >= testQuestions.length ? "Ver resultado" : "Próxima questão"} <ArrowRight size={14}/></button>}
-      </> : testFinished ? <div className="dynamic-test-result"><Trophy size={30}/><strong>{testAnswers.filter(item => item.correct).length} de {testAnswers.length} respostas corretas</strong><span>{Math.round((testAnswers.filter(item => item.correct).length / Math.max(1, testAnswers.length)) * 100)}% de aproveitamento · {department}</span><p>Use o resultado como diagnóstico: retorne às aulas e aos cartões dos temas em que teve dificuldade. {lastTestSummary && `Resultado desta tentativa: ${lastTestSummary}.`}</p><button className="button button-dark" onClick={() => { setTestIndex(0); setTestChoice(null); setTestAnswers([]); setTestFinished(false); setTestFeedback(null); }}>Refazer teste</button>{testHistory.length > 0 && <div className="lab-test-history"><strong>Histórico recente</strong>{testHistory.slice(0, 4).map((attempt, index) => <span key={`${attempt.completedAt}-${index}`}>{attempt.department}: {attempt.score}/{attempt.total} · {new Date(attempt.completedAt).toLocaleDateString("pt-BR")}</span>)}</div>}</div> : <div className="review-empty"><strong>Não há questões cadastradas para esta seleção.</strong><span>Escolha outra disciplina para continuar.</span></div>}
+      </> : testFinished ? <div className="dynamic-test-result"><CheckCircle2 size={30}/><strong>{testAnswers.filter(item => item.correct).length} de {testAnswers.length} respostas corretas</strong><span>{Math.round((testAnswers.filter(item => item.correct).length / Math.max(1, testAnswers.length)) * 100)}% de aproveitamento · {department}</span><p>Use o resultado como diagnóstico: retorne às aulas e aos cartões dos temas em que teve dificuldade. {lastTestSummary && `Resultado desta tentativa: ${lastTestSummary}.`}</p><button className="button button-dark" onClick={() => { setTestIndex(0); setTestChoice(null); setTestAnswers([]); setTestFinished(false); setTestFeedback(null); }}>Refazer teste</button>{testHistory.length > 0 && <div className="lab-test-history"><strong>Histórico recente</strong>{testHistory.slice(0, 4).map((attempt, index) => <span key={`${attempt.completedAt}-${index}`}>{attempt.department}: {attempt.score}/{attempt.total} · {new Date(attempt.completedAt).toLocaleDateString("pt-BR")}</span>)}</div>}</div> : <div className="review-empty"><strong>Não há questões cadastradas para esta seleção.</strong><span>Escolha outra disciplina para continuar.</span></div>}
     </article>}
 
     {activeTool === "review" && <>
