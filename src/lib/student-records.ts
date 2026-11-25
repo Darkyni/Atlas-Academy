@@ -2,7 +2,7 @@
 
 import { supabase } from "@/lib/supabase";
 
-export type StudentRecordType = "flashcard_review" | "study_note" | "arcade_score" | "dynamic_test" | "library_bookmark" | "field_ops";
+export type StudentRecordType = "flashcard_review" | "study_note" | "arcade_score" | "dynamic_test" | "library_bookmark" | "field_ops" | "research_entry" | "study_plan" | "concept_map" | "evidence_portfolio";
 
 /** Reads records for a known user id; the id always comes from Supabase Auth. */
 export async function loadStudentRecordsForUser<T>(recordType: StudentRecordType, userId: string): Promise<Record<string, T>> {
