@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "./rpg-world.css";
+import "./atlas-academic.css";
 
 export const metadata: Metadata = {
-  title: "ATLAS Academy — Knowledge & Operations",
-  description: "Academia pessoal multidisciplinar com cursos progressivos, aprendizagem ativa, simulações, ferramentas de campo e engenharia aplicada.",
+  title: "ATLAS Academy — Academia Pessoal",
+  description: "Academia pessoal multidisciplinar para estudo, pesquisa, pensamento crítico e aplicação prática.",
   icons: { icon: "/atlas-mark.svg", shortcut: "/atlas-mark.svg" }
 };
 
