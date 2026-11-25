@@ -25,14 +25,14 @@ A extensão adiciona uma área independente na navegação principal chamada **C
 4. Energia solar e armazenamento: dimensionamento conceitual
 5. Mecânica, manutenção e diagnóstico
 
-## Mecânicas
-- World Simulator
-- Survival 72H
-- Diagnostic
-- Crisis Command
-- Engineering Challenges
-- Knowledge Transfer
-- Checklists de missão e checklist de preparação
+## Formatos de aprendizagem aplicada
+- Simulação de ambiente e análise de cenários
+- Preparação para 72 horas
+- Diagnóstico orientado
+- Resposta a cenários de crise
+- Exercícios de engenharia
+- Transferência de conhecimento
+- Checklists de preparação e acompanhamento
 - Marcação de módulos estudados
 - Persistência local no navegador em `atlas-practical-academy-v1`
 

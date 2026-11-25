@@ -2,7 +2,7 @@
 
 Academia pessoal multidisciplinar para estudar, conectar ideias e aplicar conhecimento. O projeto utiliza Next.js 15, React 19, TypeScript e Supabase opcional para autenticação e sincronização dos registros do estudante.
 
-> **Edição RPG Learning World (12/11/2026):** a interface foi remodelada como uma jornada de RPG educacional, com HUD de personagem, experiência por aulas concluídas, seis territórios de conhecimento, missões, emblemas e avaliações finais de domínio. Consulte [`ATLAS_RPG_REMODEL.md`](./ATLAS_RPG_REMODEL.md) para entender a progressão e as verificações pendentes antes da publicação.
+> **Direção acadêmica autoral (25/11/2026):** interface híbrida editorial-tecnológica, densa e orientada ao estudo. A camada RPG foi retirada da navegação e da prática aplicada; atividades de evocação, análise de evidências, relações conceituais e raciocínio procedimental permanecem como exercícios acadêmicos com progresso persistente. A leitura das aulas agora inclui índice contextual e a pesquisa global permite localizar aulas pelo teclado (Ctrl/⌘ + K). Consulte `ATLAS_BUILD_STATUS.md` para o escopo e as validações.
 
 ## O que está incluído
 
@@ -34,12 +34,12 @@ A navegação **Campo & Engenharia** reúne três trilhas novas, com 24 módulos
 - **ATLAS HOME LAB:** diagnóstico, hidráulica, segurança elétrica, construção/marcenaria e climatização.
 - **ATLAS FIELD ENGINEERING:** pensamento de engenharia, eletrônica de baixa tensão, sensores, automação, energia solar e diagnóstico mecânico.
 
-Inclui 24 módulos progressivos (oito por trilha), missões práticas marcáveis, checklist pessoal e seis modos de simulação: World Simulator, Survival 72H, Diagnostic, Crisis Command, Engineering Challenges e Knowledge Transfer. Os conteúdos delimitam explicitamente quando é necessário procurar profissionais habilitados e não ensinam intervenções perigosas em rede elétrica, gás, sistemas pressurizados, refrigerantes ou baterias de alta energia. O Centro de Operações acrescenta dimensionador de água, checklist de prontidão, matriz de risco, diário de manutenção, puzzle investigativo de sequência de crise e calculadora educacional da Lei de Ohm. Os registros ficam no navegador e podem sincronizar por conta autenticada após a migration incremental 006; sem ela, o salvamento local continua disponível.
+Inclui 24 módulos progressivos (oito por trilha), atividades práticas com checklist, checklist pessoal e seis formatos de simulação e aplicação: análise de ambiente, preparação para 72 horas, diagnóstico orientado, resposta a cenários de crise, exercícios de engenharia e transferência de conhecimento. Os conteúdos delimitam explicitamente quando é necessário procurar profissionais habilitados e não ensinam intervenções perigosas em rede elétrica, gás, sistemas pressurizados, refrigerantes ou baterias de alta energia. O Centro de Operações acrescenta dimensionador de água, checklist de prontidão, matriz de risco, diário de manutenção, exercício de análise sequencial de crise e calculadora educacional da Lei de Ohm. Os registros ficam no navegador e podem sincronizar por conta autenticada após a migration incremental 006; sem ela, o salvamento local continua disponível.
 
-### Laboratório e jogos
+### Laboratório e prática aplicada
 
-- **42 missões educativas**, sete por disciplina, com casos, cálculos e verificações conceituais.
-- Jogos também disponíveis dentro do Laboratório.
+- **42 atividades educativas**, sete por disciplina, com casos, cálculos e verificações conceituais.
+- Exercícios de prática também disponíveis dentro do Laboratório.
 - **24 cenários de prática** para raciocínio aplicado.
 - Revisão espaçada de flashcards, com intervalos ajustados pela autoavaliação.
 - Testes dinâmicos por disciplina, feedback por questão e histórico recente de tentativas.
@@ -55,7 +55,7 @@ O Tutor utiliza recuperação de conteúdo do currículo e da Biblioteca, sem AP
 - Cadastro e login por e-mail/senha via Supabase Auth.
 - Fluxo de recuperação e redefinição de senha.
 - Progresso de aulas sincronizado na tabela `student_lesson_progress`.
-- Migrations incrementais `005_student_learning_records.sql` e `006_field_operations_records.sql` para registros acadêmicos, jogos, favoritos e Centro de Operações. A 006 amplia a constraint de tipos de registro; deve ser revisada e executada somente se ainda estiver pendente.
+- Migrations incrementais `005_student_learning_records.sql` e `006_field_operations_records.sql` para registros acadêmicos, prática aplicada, favoritos e Centro de Operações. A 006 amplia a constraint de tipos de registro; deve ser revisada e executada somente se ainda estiver pendente.
 - Políticas RLS limitam registros ao usuário autenticado.
 - A avaliação por IA exige sessão Supabase válida, token Bearer, limites de entrada e validação da resposta; há uma limitação inicial de cinco solicitações por minuto por usuário e por instância do servidor. Em produção distribuída, configure também um limitador compartilhado (Redis/serviço equivalente) para impor o limite globalmente.
 - Cabeçalhos HTTP de segurança reduzem exposição a framing, MIME sniffing e permissões desnecessárias.
@@ -119,3 +119,8 @@ OPENAI_MODEL=gpt-4.1-mini
 - Se o deploy mostrar uma versão antiga, confira o commit implantado e faça Redeploy do último commit após corrigir a configuração. Não considere o site atualizado até confirmar a nova implantação e testar a URL publicada.
 
 Consulte `DEPLOYMENT_CHECKLIST.md`, `ATLAS_BUILD_STATUS.md` e `ATLAS_FIELD_SYSTEMS.md`.
+
+
+## Atualização — Estúdio de Conceitos (25/11/2026)
+
+A navegação agora inclui o **Mapa de conceitos**, um espaço para criar mapas de conhecimento, adicionar conceitos classificados (conceito, causa, evidência ou exemplo), explicitar relações direcionais entre ideias, acompanhar confiança declarada e exportar o resultado em Markdown. Os mapas são persistidos localmente em namespace por identidade e sincronizados com `student_learning_records` quando a migration `009_concept_maps.sql` estiver aplicada. Consulte `ATLAS_CONCEPT_STUDIO.md` e `ATLAS_BUILD_STATUS.md` para escopo, validação e limitações.

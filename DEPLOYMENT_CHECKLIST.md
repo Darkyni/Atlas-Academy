@@ -62,3 +62,11 @@ npm run build
 - [ ] Verificar layout em celular e computador, navegação por teclado e `prefers-reduced-motion`.
 
 **Regra de conclusão:** só considerar publicado depois de verificar o deployment e percorrer os fluxos acima. Arquivos no GitHub, README ou ZIP não comprovam que o deployment ativo foi atualizado.
+
+
+## Migrations adicionadas no redesign de 25/11/2026
+
+- `007_research_notebook.sql` — adiciona `research_entry` ao conjunto de registros permitidos.
+- `008_study_planner.sql` — adiciona `study_plan` ao conjunto de registros permitidos.
+
+Antes de executar, confira no Supabase se `005_student_learning_records.sql` e `006_field_operations_records.sql` já foram aplicadas. A migration 007 deve preceder a 008. Não execute às cegas em produção; valide o histórico real e faça backup conforme a política do projeto.
